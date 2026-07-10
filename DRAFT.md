@@ -880,3 +880,15 @@ LaunchWeaver turns fragile launch strings into a structured, reversible, and saf
 ## 19. 中文簡述
 
 LaunchWeaver 是一個啟動參數結構化編輯器，能將原本難以維護的單行啟動參數拆解成環境變數、包裝命令與遊戲參數，並在儲存時安全地重新編譯回原始啟動欄位格式。
+
+## 20. 下一步：研究 Steam 原生 Dialog
+
+目前使用 `bForcePopOut`、固定 `popupWidth` 與內層寬度限制，只是 MVP workaround，不是最終解法。
+
+下一步應直接研究 Steam WebView / shared SteamUI 的 dialog 實作：
+
+1. 從 `steamloopback.host/library.js` 與 SteamUI chunks 追出 `showModalRaw`、modal manager、`BUsePopups`、`ShowLegacyPopupModal` 的完整呼叫路徑。
+2. 確認 Properties popup 應使用的 parent window、已註冊 modal manager、正確的 sizing 與 close lifecycle。
+3. 以宿主原生 dialog layout 取代固定 popup / container 寬度，不再逐項修補裁切與黑邊。
+
+完成條件：不需要固定寬度、沒有黑邊或 overflow，並且 Open、Cancel、Apply 在 Properties WebView 中都能穩定運作。
