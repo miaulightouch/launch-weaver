@@ -141,7 +141,6 @@ function EditorDialog({
           flexDirection: "column",
           gap: 12,
           minWidth: 0,
-          width: 480,
         }}
       >
         <div
@@ -258,12 +257,7 @@ export function openEditor(
     />,
     parent,
     {
-      bForcePopOut: true,
-      bHideMainWindowForPopouts: false,
       fnOnClose: onClose,
-      popupHeight: 480,
-      popupWidth: 530,
-      strTitle: "LaunchWeaver",
     },
   );
 }
