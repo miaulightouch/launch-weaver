@@ -11,7 +11,6 @@ export interface EnvironmentVariable {
 
 export interface ParsedLaunchOptions {
   env: EnvironmentVariable[];
-  hadEnvironmentPrefix: boolean;
   tail: string;
 }
 
@@ -107,11 +106,11 @@ function parseAssignmentAt(raw: string, start: number) {
 }
 
 export function parseLaunchOptions(raw: string): ParsedLaunchOptions {
-  if (/[\0\r\n]/.test(raw)) return { env: [], hadEnvironmentPrefix: false, tail: raw };
+  if (/[\0\r\n]/.test(raw)) return { env: [], tail: raw };
 
   const first = parseAssignmentAt(raw, 0);
   if (!first) {
-    return { env: [], hadEnvironmentPrefix: false, tail: raw };
+    return { env: [], tail: raw };
   }
 
   const env = [first.entry];
@@ -133,7 +132,6 @@ export function parseLaunchOptions(raw: string): ParsedLaunchOptions {
 
   return {
     env,
-    hadEnvironmentPrefix: true,
     tail: raw.slice(end),
   };
 }
@@ -160,11 +158,11 @@ export function serializeLaunchOptions(
     })
     .join("");
 
-  if (!parsed.hadEnvironmentPrefix && /^[ \t]*$/.test(parsed.tail)) {
+  if (parsed.env.length === 0 && /^[ \t]*$/.test(parsed.tail)) {
     return `${prefix} %command%${parsed.tail}`;
   }
   if (parsed.tail.length === 0) return prefix;
-  if (parsed.hadEnvironmentPrefix) return prefix + parsed.tail;
+  if (parsed.env.length > 0) return prefix + parsed.tail;
   return `${prefix} ${parsed.tail}`;
 }
 

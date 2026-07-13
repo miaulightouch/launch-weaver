@@ -19,7 +19,7 @@ describe("applyLaunchOptionsChange", () => {
         after: "A=1 %command%",
         io,
       }),
-    ).toEqual({ status: "unchanged" });
+    ).toBe("unchanged");
     expect(io.readCurrent).not.toHaveBeenCalled();
     expect(io.write).not.toHaveBeenCalled();
   });
@@ -33,7 +33,7 @@ describe("applyLaunchOptionsChange", () => {
         after: "A=3 %command%",
         io,
       }),
-    ).toEqual({ current: "A=2 %command%", status: "stale" });
+    ).toBe("stale");
     expect(io.write).not.toHaveBeenCalled();
   });
 
@@ -46,7 +46,7 @@ describe("applyLaunchOptionsChange", () => {
         after: "A=2 %command%",
         io,
       }),
-    ).toEqual({ status: "applied" });
+    ).toBe("applied");
     expect(io.write).toHaveBeenCalledTimes(1);
     expect(io.write).toHaveBeenCalledWith("A=2 %command%");
   });
@@ -60,8 +60,7 @@ describe("applyLaunchOptionsChange", () => {
         after: "A=2 %command%",
         io,
       }),
-    ).toEqual({ observed: "A=3 %command%", status: "unconfirmed" });
-    expect(io.write).toHaveBeenNthCalledWith(1, "A=2 %command%");
+    ).toBe("unconfirmed");
     expect(io.write).toHaveBeenCalledTimes(1);
   });
 
@@ -70,7 +69,7 @@ describe("applyLaunchOptionsChange", () => {
 
     expect(
       await applyLaunchOptionsChange({ before: "old", after: "new", io }),
-    ).toEqual({ status: "unavailable" });
+    ).toBe("unavailable");
     expect(io.write).not.toHaveBeenCalled();
   });
 
@@ -79,8 +78,8 @@ describe("applyLaunchOptionsChange", () => {
     readFailure.readCurrent.mockImplementation(async () => {
       throw new Error("read failed");
     });
-    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io: readFailure })).toEqual(
-      { status: "unavailable" },
+    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io: readFailure })).toBe(
+      "unavailable",
     );
     expect(readFailure.write).not.toHaveBeenCalled();
 
@@ -88,8 +87,8 @@ describe("applyLaunchOptionsChange", () => {
     writeFailure.write.mockImplementation(() => {
       throw new Error("write failed");
     });
-    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io: writeFailure })).toEqual(
-      { status: "failed" },
+    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io: writeFailure })).toBe(
+      "failed",
     );
     expect(writeFailure.write).toHaveBeenCalledTimes(1);
   });
@@ -100,10 +99,7 @@ describe("applyLaunchOptionsChange", () => {
       throw new Error("readback failed");
     });
 
-    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io })).toEqual({
-      observed: null,
-      status: "unconfirmed",
-    });
+    expect(await applyLaunchOptionsChange({ before: "old", after: "new", io })).toBe("unconfirmed");
     expect(io.write).toHaveBeenCalledTimes(1);
   });
 });

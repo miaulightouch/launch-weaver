@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": ".millennium/Dist",
-    "rootDir": ".",
     "module": "ESNext",
     "target": "ES2020",
     "jsx": "react",
@@ -9,11 +7,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noImplicitThis": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
     "skipLibCheck": true
   },
   "include": ["frontend/**/*.ts", "frontend/**/*.tsx"]

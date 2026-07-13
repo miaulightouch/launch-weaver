@@ -4,14 +4,6 @@ export interface LaunchOptionsIO {
   write(value: string): void;
 }
 
-export type ApplyLaunchOptionsResult =
-  | { status: "unchanged" }
-  | { status: "applied" }
-  | { status: "unavailable" }
-  | { status: "stale"; current: string }
-  | { status: "failed" }
-  | { status: "unconfirmed"; observed: string | null };
-
 export async function applyLaunchOptionsChange({
   after,
   before,
@@ -20,23 +12,23 @@ export async function applyLaunchOptionsChange({
   after: string;
   before: string;
   io: LaunchOptionsIO;
-}): Promise<ApplyLaunchOptionsResult> {
-  if (after === before) return { status: "unchanged" };
+}) {
+  if (after === before) return "unchanged";
 
   let current: string | null;
   try {
     current = await io.readCurrent();
   } catch {
-    return { status: "unavailable" };
+    return "unavailable";
   }
 
-  if (current === null) return { status: "unavailable" };
-  if (current !== before) return { current, status: "stale" };
+  if (current === null) return "unavailable";
+  if (current !== before) return "stale";
 
   try {
     io.write(after);
   } catch {
-    return { status: "failed" };
+    return "failed";
   }
 
   let observed: string | null = null;
@@ -46,6 +38,6 @@ export async function applyLaunchOptionsChange({
     // A failed readback is reported without making a second write.
   }
 
-  if (observed === after) return { status: "applied" };
-  return { observed, status: "unconfirmed" };
+  if (observed === after) return "applied";
+  return "unconfirmed";
 }

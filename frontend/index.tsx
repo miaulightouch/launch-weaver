@@ -4,7 +4,6 @@ import {
   definePlugin,
   DialogButton,
   DialogLabel,
-  Field,
   IconsModule,
   showModal,
   TextField,
@@ -23,9 +22,7 @@ export interface NativeLaunchOptionsBridge {
   write(value: string): void;
 }
 
-interface DraftEnvironmentVariable extends EnvironmentVariable {
-  id: string;
-}
+type DraftEnvironmentVariable = EnvironmentVariable & { id: string };
 
 const ICON_BUTTON_STYLE = {
   alignItems: "center",
@@ -38,12 +35,6 @@ const ICON_BUTTON_STYLE = {
   padding: 0,
   width: 40,
 } as const;
-
-function SettingsContent() {
-  return (
-    <Field label="LaunchWeaver" description="Open a game's Properties to edit its launch options." />
-  );
-}
 
 function waitForNativeValue(bridge: NativeLaunchOptionsBridge, expected: string) {
   return new Promise<string | null>((resolve) => {
@@ -89,9 +80,8 @@ function EditorDialog({
   const [message, setMessage] = React.useState<string | null>(null);
   const [applying, setApplying] = React.useState(false);
 
-  const env = rows.map(({ id: _id, ...entry }) => entry);
-  const validationError = getEnvironmentError(env);
-  const compiled = serializeLaunchOptions(parsed, env);
+  const validationError = getEnvironmentError(rows);
+  const compiled = serializeLaunchOptions(parsed, rows);
 
   const updateRow = (id: string, change: Partial<EnvironmentVariable>) => {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...change } : row)));
@@ -112,7 +102,7 @@ function EditorDialog({
     });
 
     setApplying(false);
-    if (result.status === "applied" || result.status === "unchanged") {
+    if (result === "applied" || result === "unchanged") {
       closeModal?.();
       return;
     }
@@ -123,7 +113,7 @@ function EditorDialog({
       unconfirmed: "Steam did not confirm the write. Check the native field before continuing; no second write was made.",
       unavailable: "LaunchWeaver could not re-read the native field, so nothing was written.",
     } as const;
-    setMessage(messages[result.status]);
+    setMessage(messages[result]);
   };
 
   return (
@@ -269,7 +259,6 @@ export default definePlugin(() => {
   return {
     title: "LaunchWeaver",
     icon: <IconsModule.Settings />,
-    content: <SettingsContent />,
     onDismount: uninstallPropertiesPatch,
   };
 });
