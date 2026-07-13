@@ -86,10 +86,11 @@ describe("serializeLaunchOptions", () => {
     );
   });
 
-  test("keeps the original tail when every parsed variable is removed", () => {
+  test("clears launch options when no variables remain", () => {
     const parsed = parseLaunchOptions("A=1   %command%");
 
-    expect(serializeLaunchOptions(parsed, [])).toBe("   %command%");
+    expect(serializeLaunchOptions(parsed, [])).toBe("");
+    expect(serializeLaunchOptions(parseLaunchOptions("%command% --flag"), [])).toBe("");
   });
 
   test("quotes apostrophes safely", () => {

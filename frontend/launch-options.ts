@@ -147,7 +147,7 @@ export function serializeLaunchOptions(
   parsed: ParsedLaunchOptions,
   env: EnvironmentVariable[],
 ) {
-  if (env.length === 0) return parsed.tail;
+  if (env.length === 0) return "";
 
   const prefix = env
     .map((entry, index) => {

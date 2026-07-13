@@ -3,6 +3,7 @@ import {
   ConfirmModal,
   definePlugin,
   DialogButton,
+  DialogLabel,
   Field,
   IconsModule,
   showModal,
@@ -152,7 +153,7 @@ function EditorDialog({
           }}
         >
           <div style={{ flex: 1, minWidth: 0, opacity: 0.8, whiteSpace: "normal" }}>
-            Edit leading environment variables. Everything after them stays untouched.
+            Edit leading environment variables. Delete every variable to clear Launch Options.
           </div>
           <DialogButton
             aria-label="Add environment variable"
@@ -176,60 +177,60 @@ function EditorDialog({
           </DialogButton>
         </div>
 
-        {rows.map((row, index) => (
-          <div
-            key={row.id}
-            style={{
-              alignItems: "end",
-              display: "grid",
-              gap: 8,
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <TextField
-                aria-label={`Environment variable ${index + 1} name`}
-                label={index === 0 ? "Name" : undefined}
-                onChange={(event) => updateRow(row.id, { key: event.currentTarget.value })}
-                value={row.key}
-              />
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <TextField
-                aria-label={`Environment variable ${index + 1} value`}
-                inlineControls={
-                  <DialogButton
-                    aria-label={`Remove environment variable ${row.key || index + 1}`}
-                    onClick={() =>
-                      setRows((current) => current.filter(({ id }) => id !== row.id))
-                    }
-                    style={ICON_BUTTON_STYLE}
-                    title="Remove variable"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      fill="none"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      width="18"
-                    >
-                      <path
-                        d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </DialogButton>
-                }
-                label={index === 0 ? "Value" : undefined}
-                onChange={(event) => updateRow(row.id, { value: event.currentTarget.value })}
-                value={row.value}
-              />
-            </div>
-          </div>
-        ))}
+        <div
+          style={{
+            alignItems: "center",
+            columnGap: 8,
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr) 40px",
+            rowGap: 8,
+          }}
+        >
+          <DialogLabel style={{ marginBottom: 0 }}>Name</DialogLabel>
+          <DialogLabel style={{ marginBottom: 0 }}>Value</DialogLabel>
+          <span />
+
+          {rows.map((row, index) => (
+            <React.Fragment key={row.id}>
+              <div style={{ minWidth: 0 }}>
+                <TextField
+                  aria-label={`Environment variable ${index + 1} name`}
+                  onChange={(event) => updateRow(row.id, { key: event.currentTarget.value })}
+                  value={row.key}
+                />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <TextField
+                  aria-label={`Environment variable ${index + 1} value`}
+                  onChange={(event) => updateRow(row.id, { value: event.currentTarget.value })}
+                  value={row.value}
+                />
+              </div>
+              <DialogButton
+                aria-label={`Remove environment variable ${row.key || index + 1}`}
+                onClick={() => setRows((current) => current.filter(({ id }) => id !== row.id))}
+                style={ICON_BUTTON_STYLE}
+                title="Remove variable"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  width="18"
+                >
+                  <path
+                    d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </DialogButton>
+            </React.Fragment>
+          ))}
+        </div>
 
         {(validationError || message) && (
           <div role="alert" style={{ color: "#ffcc6a" }}>

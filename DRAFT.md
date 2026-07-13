@@ -881,14 +881,80 @@ LaunchWeaver turns fragile launch strings into a structured, reversible, and saf
 
 LaunchWeaver 是一個啟動參數結構化編輯器，能將原本難以維護的單行啟動參數拆解成環境變數、包裝命令與遊戲參數，並在儲存時安全地重新編譯回原始啟動欄位格式。
 
-## 20. 下一步：研究 Steam 原生 Dialog
+## 20. Steam 原生 Dialog 研究結果
 
-目前使用 `bForcePopOut`、固定 `popupWidth` 與內層寬度限制，只是 MVP workaround，不是最終解法。
+研究環境：Steam build `1782866176`（CLSTAMP `10776939`）、Millennium `3.4.0_beta.9-1`、實際安裝的 `@steambrew/client` `5.8.5`。
 
-下一步應直接研究 Steam WebView / shared SteamUI 的 dialog 實作：
+本機 bundle 的關鍵位置：
 
-1. 從 `steamloopback.host/library.js` 與 SteamUI chunks 追出 `showModalRaw`、modal manager、`BUsePopups`、`ShowLegacyPopupModal` 的完整呼叫路徑。
-2. 確認 Properties popup 應使用的 parent window、已註冊 modal manager、正確的 sizing 與 close lifecycle。
-3. 以宿主原生 dialog layout 取代固定 popup / container 寬度，不再逐項修補裁切與黑邊。
+- `steamui/chunk~2dcc5aaf7.js` module `13869`：Steam Brew 找到的 `showModalRaw` 與 Steam 真正的高階 sizing helper。
+- `steamui/library.js` module `3673`：`CModalManager`、`ShowModal`、`ShowLegacyPopupModal` 與 `WeakMap<Window, ModalManager>` registry。
+- `steamui/library.js` module `36437`：inline overlay、measure renderer 與 legacy popup renderer。
+- `steamui/library.js` module `91435`：dialog provider 建立並向所在 `Window` 註冊 manager。
 
-完成條件：不需要固定寬度、沒有黑邊或 overflow，並且 Open、Cancel、Apply 在 Properties WebView 中都能穩定運作。
+確定的行為：
+
+1. Properties popup 自己已有 modal manager；正確 parent 是 Launch Options input 的 `ownerDocument.defaultView`，不是 DOM button，也不是主 Steam window。
+2. `@steambrew/client` 的 `showModal()` 直接呼叫底層 raw helper。raw helper 的實際分支是 `USE_POPUPS && manager.BUsePopups() && props && title` 時走 `ShowLegacyPopupModal`，否則走同一個 manager 的 inline `ShowModal`。
+3. 因此外層 options 的 `strTitle` 才是觸發巢狀 legacy popup 的真正原因；`bForcePopOut`、`bNeverPopOut` 並未由這個 raw helper 讀取。`ConfirmModal` 自己的 `strTitle` 可以保留。
+4. 正確最小修正是只傳 `{ fnOnClose }`，移除外層 `strTitle`、所有 popout options、`popupWidth`、`popupHeight` 與固定 content width。
+5. Steam inline modal 自己已有 viewport 上限；黑邊與裁切來自 legacy popup window chrome，不是缺少另一層 sizing container。
+6. 不要預先把「關閉 returned handle」的 callback 當成 element 的 `closeModal`。應讓 Steam clone element 時注入 `closeModal`，否則 legacy close chain 可能遞迴或重複呼叫 `fnOnClose`。
+
+目前已用實機截圖確認：dialog 直接覆蓋 Properties WebView，沒有獨立 popup、黑邊或 overflow。
+
+## 21. 本機快速重載與 UI 驗證
+
+不要手動進 Millennium 設定頁重載，也不要先猜滑鼠座標。compact 後優先使用以下流程。
+
+### 21.1 建置
+
+```bash
+./node_modules/.bin/millennium-ttc --no-update --build prod
+```
+
+產物位於 `.millennium/Dist/index.js`；`~/.local/share/millennium/plugins/launch-weaver` 是指向本 repo 的 symlink。
+
+### 21.2 透過 Millennium MEP socket 重載插件
+
+```bash
+printf '\x42\x00\x00\x00\x83\xa2id\xa1\x31\xa6method\xaeplugin.restart\xa6params\x82\xa4name\xadlaunch-weaver\xa9reload_ui\xc3' \
+  | socat1 -T 3 - UNIX-CONNECT:/tmp/millennium-mep.sock
+```
+
+這是帶 4-byte 長度前綴的 MessagePack request，內容為：
+
+```text
+method: plugin.restart
+params.name: launch-weaver
+params.reload_ui: true
+```
+
+若 plugin name 或 payload 長度改變，必須重新產生 frame，不能沿用硬編碼 bytes。
+
+### 21.3 直接開啟測試遊戲的 Properties
+
+```bash
+steam steam://gameproperties/1973530
+```
+
+插件 reload 後應關閉舊 Properties 再重開，避免沿用舊 hook／React tree。
+
+### 21.4 自行截圖
+
+```bash
+spectacle -b -n -o /tmp/launch-weaver-check.png
+```
+
+需要點擊時可使用 XTest 小工具；曾成功使用的形式是：
+
+```bash
+env DISPLAY=:0 /tmp/launch-weaver-click X Y
+```
+
+座標不是穩定 API，應先截圖定位。若需完全確定地自動開啟 Editor，可在 `fieldRoot.append(wrapper)` 後暫時加一次性的 `button.click()` smoke trigger，驗證後立刻刪除並確認 `git diff` 沒留下測試碼。
+
+### 21.5 Steam Brew 能與不能做的事
+
+- 在已注入的 Steam JS context 內，可以用 `SteamClient.Window.BringToFront()`、Steam Router、`showModal()` 與 Millennium CDP API 控制 Steam 視窗和內容。
+- 外部 Codex shell 不在該 JS context，不能直接呼叫上述 API；插件 lifecycle 應走 MEP socket，Properties 應走 Steam URI，畫面驗證走 screenshot／必要時 XTest。
