@@ -1,119 +1,255 @@
 import { describe, expect, test } from "bun:test";
 import {
   getEnvironmentError,
+  getLaunchOptionsError,
   parseLaunchOptions,
   serializeLaunchOptions,
-} from "../frontend/launch-options";
+  type StructuredLaunchOptions,
+} from "../frontend/features/launch-options/model";
+
+function edit(
+  raw: string,
+  change: Partial<StructuredLaunchOptions>,
+): [ReturnType<typeof parseLaunchOptions>, StructuredLaunchOptions] {
+  const parsed = parseLaunchOptions(raw);
+  return [
+    parsed,
+    {
+      env: change.env ?? parsed.env,
+      wrappers: change.wrappers ?? parsed.wrappers,
+      parameters: change.parameters ?? parsed.parameters,
+    },
+  ];
+}
 
 describe("parseLaunchOptions", () => {
-  test("parses only the leading environment assignments", () => {
-    const parsed = parseLaunchOptions('A=1 B="hello world" %command% -x=y');
+  test("parses environment variables, wrapper tokens, the command, and parameters", () => {
+    const parsed = parseLaunchOptions(
+      `A=1 B="hello world" gamemoderun gamescope -f -- %command% --name='Ada Lovelace' ''`,
+    );
 
-    expect(parsed.env.map(({ key, value }) => ({ key, value }))).toEqual([
+    expect(parsed.error).toBeNull();
+    expect(parsed.explicitCommand).toBe(true);
+    expect(parsed.env).toEqual([
       { key: "A", value: "1" },
       { key: "B", value: "hello world" },
     ]);
-    expect(parsed.tail).toBe(" %command% -x=y");
+    expect(parsed.wrappers).toEqual(["gamemoderun", "gamescope", "-f", "--"]);
+    expect(parsed.parameters).toEqual(["--name=Ada Lovelace", ""]);
   });
 
-  test("stops at the first non-environment token", () => {
-    const parsed = parseLaunchOptions("A=1 gamemoderun B=2 %command%");
+  test("treats assignments after the first wrapper as prefix arguments", () => {
+    const parsed = parseLaunchOptions("A=1 env B=2 gamemoderun %command%");
 
-    expect(parsed.env).toHaveLength(1);
-    expect(parsed.tail).toBe(" gamemoderun B=2 %command%");
+    expect(parsed.env).toEqual([{ key: "A", value: "1" }]);
+    expect(parsed.wrappers).toEqual(["env", "B=2", "gamemoderun"]);
   });
 
-  test("keeps complex or malformed values opaque", () => {
-    for (const raw of ["A=$HOME %command%", 'A="unterminated %command%', "bash -c 'echo hi'"]) {
-      const parsed = parseLaunchOptions(raw);
-      expect(parsed.env).toHaveLength(0);
-      expect(parsed.tail).toBe(raw);
-    }
+  test("parses launch options without a placeholder as native appended parameters", () => {
+    const parsed = parseLaunchOptions("-novid --name='Ada Lovelace'");
+
+    expect(parsed.error).toBeNull();
+    expect(parsed.explicitCommand).toBe(false);
+    expect(parsed.env).toEqual([]);
+    expect(parsed.wrappers).toEqual([]);
+    expect(parsed.parameters).toEqual(["-novid", "--name=Ada Lovelace"]);
   });
 
   test("supports empty, escaped, quoted, and equals-containing values", () => {
     const parsed = parseLaunchOptions("EMPTY= ESCAPED=hello\\ world QUOTED='a=b c' %command%");
 
     expect(parsed.env.map(({ value }) => value)).toEqual(["", "hello world", "a=b c"]);
-    expect(parsed.tail).toBe(" %command%");
   });
 
-  test("treats non-ASCII whitespace as part of an unquoted value", () => {
-    const parsed = parseLaunchOptions("A=foo\u00a0bar %command%");
-
-    expect(parsed.env[0]?.value).toBe("foo\u00a0bar");
-    expect(parsed.tail).toBe(" %command%");
-  });
-
-  test("keeps active tilde expansion and control characters opaque", () => {
-    for (const raw of ["A=~ %command%", "A=one\ntwo %command%", "A=one\0two %command%"]) {
-      const parsed = parseLaunchOptions(raw);
-      expect(parsed.env).toHaveLength(0);
-      expect(parsed.tail).toBe(raw);
+  test("rejects ambiguous placeholders", () => {
+    for (const raw of [
+      "%command% %command%",
+      "'%command%'",
+      "\\%command\\%",
+      "prefix%command%",
+      "A='%command%' %command%",
+    ]) {
+      expect(parseLaunchOptions(raw).error).toContain("standalone");
     }
+  });
 
-    expect(parseLaunchOptions("A='~' %command%").env[0]?.value).toBe("~");
+  test("rejects active or malformed shell syntax", () => {
+    for (const raw of [
+      "A=$HOME %command%",
+      "A=$(whoami) %command%",
+      "foo | %command%",
+      "%command% > log",
+      "%command% *.ini",
+      "%command% {one,two}",
+      "%command% # comment",
+      'A="unterminated %command%',
+      "%command% trailing\\",
+    ]) {
+      expect(parseLaunchOptions(raw).error).toContain("shell syntax");
+    }
+  });
+
+  test("rejects NUL, CR, and LF", () => {
+    for (const raw of ["one\ntwo", "one\rtwo", "one\0two"]) {
+      expect(parseLaunchOptions(raw).error).toContain("NUL");
+    }
+  });
+
+  test("keeps quoted shell metacharacters as literal values", () => {
+    const parsed = parseLaunchOptions("A='~$HOME' 'wrapper;name' %command% 'one & two'");
+
+    expect(parsed.error).toBeNull();
+    expect(parsed.env[0]?.value).toBe("~$HOME");
+    expect(parsed.wrappers).toEqual(["wrapper;name"]);
+    expect(parsed.parameters).toEqual(["one & two"]);
   });
 });
 
 describe("serializeLaunchOptions", () => {
   test("round-trips untouched input exactly", () => {
-    const raw = 'A=1\tB="hello world"   %command% --flag';
-    const parsed = parseLaunchOptions(raw);
-
-    expect(serializeLaunchOptions(parsed, parsed.env)).toBe(raw);
+    for (const raw of [
+      'A=1\tB="hello world"   gamemoderun %command% --flag  ',
+      "-novid\t--high  ",
+      "\t ",
+    ]) {
+      const parsed = parseLaunchOptions(raw);
+      expect(serializeLaunchOptions(parsed, parsed)).toBe(raw);
+    }
   });
 
-  test("preserves the opaque tail byte-for-byte while editing", () => {
-    const parsed = parseLaunchOptions("A=1   bash -c 'echo  x'  %command%");
-    const edited = parsed.env.map((entry) => ({ ...entry, value: "two words" }));
+  test("canonicalizes edited structures without changing token boundaries", () => {
+    const [parsed, next] = edit('A=1\tgamemoderun   %command% "old value"', {
+      env: [{ key: "A", value: "two words" }],
+      wrappers: ["gamescope", "-f", "--"],
+      parameters: ["--name=Ada Lovelace", "it's ready", ""],
+    });
 
-    expect(serializeLaunchOptions(parsed, edited)).toBe("A='two words'   bash -c 'echo  x'  %command%");
-  });
-
-  test("adds a separator before an entirely opaque original value", () => {
-    const parsed = parseLaunchOptions("%command% --flag");
-
-    expect(serializeLaunchOptions(parsed, [{ key: "A", value: "1" }])).toBe("A=1 %command% --flag");
-  });
-
-  test("keeps the game command when adding the first variable to empty options", () => {
-    expect(serializeLaunchOptions(parseLaunchOptions(""), [{ key: "A", value: "1" }])).toBe(
-      "A=1 %command%",
-    );
-    expect(serializeLaunchOptions(parseLaunchOptions("\t "), [{ key: "A", value: "1" }])).toBe(
-      "A=1 %command%\t ",
+    expect(serializeLaunchOptions(parsed, next)).toBe(
+      "A='two words' gamescope -f -- %command% '--name=Ada Lovelace' 'it'\\''s ready' ''",
     );
   });
 
-  test("clears launch options when no variables remain", () => {
-    const parsed = parseLaunchOptions("A=1   %command%");
+  test("keeps assignment-like and reserved wrappers out of shell grammar", () => {
+    const [parsed, next] = edit("'A=1' 'A+=2' 'if' %command% --old", {
+      parameters: ["--new"],
+    });
+    const serialized = serializeLaunchOptions(parsed, next);
 
-    expect(serializeLaunchOptions(parsed, [])).toBe("");
-    expect(serializeLaunchOptions(parseLaunchOptions("%command% --flag"), [])).toBe("");
+    expect(serialized).toBe("'A=1' 'A+=2' 'if' %command% --new");
+    expect(parseLaunchOptions(serialized)).toMatchObject(next);
   });
 
-  test("quotes apostrophes safely", () => {
+  test("re-parses canonical output to the same structured values", () => {
     const parsed = parseLaunchOptions("%command%");
+    const next = {
+      env: [{ key: "NAME", value: "Ada's game" }],
+      wrappers: ["A=1", "if", "wrapper name"],
+      parameters: ["one two", "$(literal)", ""],
+    };
+    const reparsed = parseLaunchOptions(serializeLaunchOptions(parsed, next));
 
-    expect(serializeLaunchOptions(parsed, [{ key: "NAME", value: "it's ready" }])).toBe(
-      "NAME='it'\\''s ready' %command%",
-    );
+    expect(reparsed.error).toBeNull();
+    expect(reparsed).toMatchObject(next);
   });
 
-  test("quotes shell control syntax as literal environment values", () => {
+  test("adds the command placeholder when environment variables or wrappers need it", () => {
+    const empty = parseLaunchOptions("");
+
+    expect(
+      serializeLaunchOptions(empty, { env: [{ key: "A", value: "1" }], wrappers: [], parameters: [] }),
+    ).toBe("A=1 %command%");
+    expect(
+      serializeLaunchOptions(empty, { env: [], wrappers: ["gamemoderun"], parameters: [] }),
+    ).toBe("gamemoderun %command%");
+  });
+
+  test("keeps parameter-only options in Steam's native appended form", () => {
+    const empty = parseLaunchOptions("");
+    const explicit = parseLaunchOptions("%command%");
+    const next = { env: [], wrappers: [], parameters: ["--name=Ada Lovelace"] };
+
+    expect(serializeLaunchOptions(empty, next)).toBe("'--name=Ada Lovelace'");
+    expect(serializeLaunchOptions(explicit, next)).toBe("%command% '--name=Ada Lovelace'");
+  });
+
+  test("converts between implicit and explicit command forms without losing parameters", () => {
+    const implicit = parseLaunchOptions("-novid");
+    expect(
+      serializeLaunchOptions(implicit, {
+        env: [{ key: "A", value: "1" }],
+        wrappers: [],
+        parameters: implicit.parameters,
+      }),
+    ).toBe("A=1 %command% -novid");
+
+    const explicit = parseLaunchOptions("A=1 %command% -novid");
+    expect(
+      serializeLaunchOptions(explicit, {
+        env: [],
+        wrappers: [],
+        parameters: explicit.parameters,
+      }),
+    ).toBe("%command% -novid");
+
+    expect(parseLaunchOptions("A=1").parameters).toEqual(["A=1"]);
+  });
+
+  test("clears launch options when every structured entry is removed", () => {
+    const parsed = parseLaunchOptions("A=1 gamemoderun %command% --flag");
+
+    expect(
+      serializeLaunchOptions(parsed, { env: [], wrappers: [], parameters: [] }),
+    ).toBe("");
+  });
+
+  test("serializes wrapper and parameter order exactly as supplied", () => {
+    const parsed = parseLaunchOptions("one two %command% first second");
+    const next = {
+      env: [],
+      wrappers: ["two", "one"],
+      parameters: ["second", "first"],
+    };
+
+    expect(serializeLaunchOptions(parsed, next)).toBe("two one %command% second first");
+  });
+
+  test("quotes shell control syntax entered as literal data", () => {
     const parsed = parseLaunchOptions("%command%");
 
     for (const value of ["$(echo injected)", "`echo injected`", "one; two", "one & two"]) {
-      expect(serializeLaunchOptions(parsed, [{ key: "VALUE", value }])).toBe(
-        `VALUE='${value}' %command%`,
-      );
+      expect(
+        serializeLaunchOptions(parsed, {
+          env: [{ key: "VALUE", value }],
+          wrappers: [],
+          parameters: [],
+        }),
+      ).toBe(`VALUE='${value}' %command%`);
     }
+  });
+
+  test("fails closed for unsupported input or invalid edits", () => {
+    const unsupported = parseLaunchOptions("$HOME %command%");
+    expect(
+      serializeLaunchOptions(unsupported, {
+        env: [{ key: "A", value: "1" }],
+        wrappers: [],
+        parameters: [],
+      }),
+    ).toBe("$HOME %command%");
+
+    const parsed = parseLaunchOptions("A=1 %command%");
+    expect(
+      serializeLaunchOptions(parsed, {
+        env: [{ key: "bad-key", value: "1" }],
+        wrappers: [],
+        parameters: [],
+      }),
+    ).toBe("A=1 %command%");
   });
 });
 
-describe("getEnvironmentError", () => {
-  test("rejects invalid and duplicate keys", () => {
+describe("validation", () => {
+  test("rejects invalid and duplicate environment keys", () => {
     expect(getEnvironmentError([{ key: "bad-key", value: "1" }])).toContain("bad-key");
     expect(
       getEnvironmentError([
@@ -123,18 +259,32 @@ describe("getEnvironmentError", () => {
     ).toContain("A");
   });
 
-  test("rejects control characters in values", () => {
-    for (const value of ["line one\nline two", "carriage\rreturn", "nul\0byte"]) {
-      expect(getEnvironmentError([{ key: "A", value }])).toContain("control");
-    }
+  test("rejects controls, empty wrappers, and reserved placeholders", () => {
+    expect(
+      getLaunchOptionsError({ env: [], wrappers: [""], parameters: [] }),
+    ).toContain("empty");
+    expect(
+      getLaunchOptionsError({ env: [], wrappers: [], parameters: ["one\ntwo"] }),
+    ).toContain("control");
+    expect(
+      getLaunchOptionsError({
+        env: [{ key: "A", value: "%command%" }],
+        wrappers: [],
+        parameters: [],
+      }),
+    ).toContain("reserved");
   });
 
-  test("accepts valid unique keys", () => {
+  test("accepts unique variables and an empty parameter", () => {
     expect(
-      getEnvironmentError([
-        { key: "A", value: "1" },
-        { key: "_B2", value: "" },
-      ]),
+      getLaunchOptionsError({
+        env: [
+          { key: "A", value: "1" },
+          { key: "_B2", value: "" },
+        ],
+        wrappers: ["gamemoderun"],
+        parameters: [""],
+      }),
     ).toBeNull();
   });
 });

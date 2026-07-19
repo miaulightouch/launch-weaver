@@ -2,7 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
   "name": "launch-weaver",
   "common_name": "LaunchWeaver",
-  "description": "Structured environment-variable editing for Steam game launch options.",
+  "description": "Structured Steam launch options and per-game OptiScaler.ini editing.",
   "version": "0.1.0",
-  "useBackend": false
+  "useBackend": true,
+  "backendType": "lua"
 }

@@ -1,0 +1,121 @@
+.lw-brand,
+.lw-tabs,
+.lw-page-title,
+.lw-page-description {
+  user-select: none;
+}
+
+.lw-shell {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.lw-sidebar {
+  background: var(--lw-sidebar);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 1.5rem 0.75rem;
+}
+
+.lw-brand {
+  color: var(--lw-accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0.75rem 1.25rem;
+}
+
+.lw-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lw-tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0.125rem;
+  color: var(--lw-muted);
+  cursor: pointer;
+  min-height: 2.5rem;
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.lw-tab:hover:not(:disabled) {
+  background: #313946;
+  color: var(--lw-text);
+}
+
+.lw-tab[aria-selected="true"] {
+  background: #414b5a;
+  color: #ffffff;
+}
+
+.lw-main {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.lw-page {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 1.75rem 2rem 2rem;
+  scrollbar-color: #4a5565 transparent;
+  scrollbar-width: thin;
+}
+
+.lw-page[data-ending-style] {
+  display: none;
+}
+
+.lw-page::-webkit-scrollbar,
+.lw-popup-list::-webkit-scrollbar {
+  width: 0.75rem;
+}
+
+.lw-page::-webkit-scrollbar-thumb,
+.lw-popup-list::-webkit-scrollbar-thumb {
+  background: #4a5565;
+  border: 0.1875rem solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+
+.lw-page-title {
+  color: #ffffff;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin: 0 0 1.5rem;
+}
+
+.lw-page-description {
+  color: var(--lw-muted);
+  margin: -1rem 0 1.25rem;
+}
+
+.lw-footer {
+  align-items: center;
+  background: var(--lw-bg);
+  border-top: 1px solid #242c36;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  min-height: 4.5rem;
+  padding: 0.75rem 2rem;
+}
+
+.lw-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

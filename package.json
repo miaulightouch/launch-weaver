@@ -8,10 +8,11 @@
     "dev": "millennium-ttc --build dev",
     "build": "millennium-ttc --build prod",
     "typecheck": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test && luajit backend/main.test.lua",
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@steambrew/client": "^5.5.3"
   },
   "devDependencies": {

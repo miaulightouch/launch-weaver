@@ -7,7 +7,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "esModuleInterop": true,
     "moduleResolution": "bundler",
     "skipLibCheck": true
   },

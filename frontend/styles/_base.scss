@@ -1,0 +1,45 @@
+html,
+body,
+#launchweaver-root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+body {
+  background: #171d25;
+}
+
+.lw-root {
+  --lw-bg: #171d25;
+  --lw-sidebar: #272d36;
+  --lw-card: #242a33;
+  --lw-input: #111820;
+  --lw-border: #3d4857;
+  --lw-text: #f1f3f5;
+  --lw-muted: #aeb7c4;
+  --lw-accent: #1a9fff;
+  --lw-accent-hover: #45b8ff;
+  --lw-focus: #67c1f5;
+  background: var(--lw-bg);
+  color: var(--lw-text);
+  color-scheme: dark;
+  font: 400 0.875rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  inset: 0;
+  overflow: hidden;
+  position: fixed;
+}
+
+.lw-root,
+.lw-root *,
+.lw-positioner,
+.lw-positioner * {
+  box-sizing: border-box;
+}
+
+.lw-root button,
+.lw-root input,
+.lw-positioner {
+  font: inherit;
+}

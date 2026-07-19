@@ -1,8 +1,21 @@
+export interface NativeLaunchOptionsBridge {
+  read(): string | null;
+  write(value: string): void;
+}
+
 export interface LaunchOptionsIO {
   readCurrent(): Promise<string | null>;
   waitFor(expected: string): Promise<string | null>;
   write(value: string): void;
 }
+
+export type LaunchOptionsApplyResult =
+  | "applied"
+  | "failed"
+  | "stale"
+  | "unchanged"
+  | "unavailable"
+  | "unconfirmed";
 
 export async function applyLaunchOptionsChange({
   after,
@@ -12,9 +25,7 @@ export async function applyLaunchOptionsChange({
   after: string;
   before: string;
   io: LaunchOptionsIO;
-}) {
-  if (after === before) return "unchanged";
-
+}): Promise<LaunchOptionsApplyResult> {
   let current: string | null;
   try {
     current = await io.readCurrent();
@@ -23,6 +34,7 @@ export async function applyLaunchOptionsChange({
   }
 
   if (current === null) return "unavailable";
+  if (current === after) return after === before ? "unchanged" : "applied";
   if (current !== before) return "stale";
 
   try {

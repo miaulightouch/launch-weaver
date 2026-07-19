@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { applyLaunchOptionsChange } from "../frontend/apply-launch-options";
+import { applyLaunchOptionsChange } from "../frontend/features/launch-options/apply";
 
 function adapter(current: string | null, observed: string | null) {
   return {
@@ -10,7 +10,7 @@ function adapter(current: string | null, observed: string | null) {
 }
 
 describe("applyLaunchOptionsChange", () => {
-  test("does not write an unchanged value", async () => {
+  test("verifies but does not write an unchanged value", async () => {
     const io = adapter("A=1 %command%", "A=1 %command%");
 
     expect(
@@ -20,7 +20,20 @@ describe("applyLaunchOptionsChange", () => {
         io,
       }),
     ).toBe("unchanged");
-    expect(io.readCurrent).not.toHaveBeenCalled();
+    expect(io.readCurrent).toHaveBeenCalledTimes(1);
+    expect(io.write).not.toHaveBeenCalled();
+  });
+
+  test("refuses an INI-only apply after the native value changes", async () => {
+    const io = adapter("B=2 %command%", null);
+
+    expect(
+      await applyLaunchOptionsChange({
+        before: "A=1 %command%",
+        after: "A=1 %command%",
+        io,
+      }),
+    ).toBe("stale");
     expect(io.write).not.toHaveBeenCalled();
   });
 
@@ -35,6 +48,20 @@ describe("applyLaunchOptionsChange", () => {
       }),
     ).toBe("stale");
     expect(io.write).not.toHaveBeenCalled();
+  });
+
+  test("treats a retry that already observes the target as applied", async () => {
+    const io = adapter("A=2 %command%", null);
+
+    expect(
+      await applyLaunchOptionsChange({
+        before: "A=1 %command%",
+        after: "A=2 %command%",
+        io,
+      }),
+    ).toBe("applied");
+    expect(io.write).not.toHaveBeenCalled();
+    expect(io.waitFor).not.toHaveBeenCalled();
   });
 
   test("confirms a successful native write", async () => {
