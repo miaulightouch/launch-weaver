@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
-    "@steambrew/client": "^5.5.3"
+    "@steambrew/client": "^5.8.5"
   },
   "devDependencies": {
-    "@steambrew/ttc": "^2.7.3",
+    "@steambrew/ttc": "3.3.7",
     "@types/react": "^19.1.12",
-    "typescript": "^5.8.3"
+    "typescript": "6.0.2"
   }
 }

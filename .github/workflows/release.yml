@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Verify release version
+        run: |
+          test "$TAG" = "v$(jq -r .version plugin.json)"
+          test "$TAG" = "v$(jq -r .version package.json)"
+
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: sudo apt-get update && sudo apt-get install -y luajit
+      - run: bun run typecheck
+      - run: bun run test
+      - run: bun run build
+
+      - name: Package plugin
+        run: |
+          mkdir -p release/launch-weaver/.millennium/Dist release/launch-weaver/backend
+          cp plugin.json README.md release/launch-weaver/
+          cp -R assets release/launch-weaver/
+          cp .millennium/Dist/index.js release/launch-weaver/.millennium/Dist/
+          cp backend/main.lua backend/ini.lua release/launch-weaver/backend/
+          cd release
+          zip -qr "../launch-weaver-${TAG}.zip" launch-weaver
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" "launch-weaver-${TAG}.zip" --clobber

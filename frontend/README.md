@@ -5,10 +5,9 @@ runtime. Everything below that entry follows a one-way composition flow:
 
 ```text
 index → app
-app → views / pages / features / lib / styles
+app → views / pages / features / styles
 views → pages / components
 pages → features / components
-features → lib
 ```
 
 ## Directories
@@ -22,7 +21,6 @@ features → lib
   wrapper would add no value.
 - `features/` contains domain models, catalogs, validation, and feature-specific
   backend adapters.
-- `lib/` contains platform plumbing shared by multiple features.
 - `styles/` contains all CSS. TTC imports the entry SCSS files as strings so the
   app can install them into the independently owned `about:blank` popup document.
 - `types/` contains non-runtime module declarations.

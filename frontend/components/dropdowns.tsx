@@ -131,6 +131,7 @@ interface EditableDropdownProps {
   disabled?: boolean;
   filterSuggestions?: boolean;
   onValueChange(value: string): void;
+  placeholder?: string;
   suggestions?: readonly string[];
   value: string;
 }
@@ -141,6 +142,7 @@ export function EditableDropdown({
   disabled,
   filterSuggestions = true,
   onValueChange,
+  placeholder,
   suggestions = [],
   value,
 }: EditableDropdownProps) {
@@ -153,6 +155,7 @@ export function EditableDropdown({
         className={className}
         disabled={disabled}
         onValueChange={onValueChange}
+        placeholder={placeholder}
         value={value}
       />
     );
@@ -173,6 +176,7 @@ export function EditableDropdown({
           autoComplete="off"
           className="lw-combobox-input"
           disabled={disabled}
+          placeholder={placeholder}
           ref={captureOwnerBody}
         />
         <Autocomplete.Trigger

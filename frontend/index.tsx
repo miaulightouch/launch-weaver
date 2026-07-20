@@ -8,12 +8,38 @@ export default client.definePlugin(() => {
   return {
     title: "LaunchWeaver",
     icon: (
-      <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 20 20" width="20">
+      <svg aria-hidden="true" height="20" viewBox="0 0 64 64" width="20">
+        <rect
+          fill="#171d25"
+          height="60"
+          rx="14"
+          stroke="#2a475e"
+          strokeWidth="4"
+          width="60"
+          x="2"
+          y="2"
+        />
         <path
-          d="M3 5h8m4 0h2M3 10h2m4 0h8M3 15h6m4 0h4M11 3v4M5 8v4m4 1v4"
-          stroke="currentColor"
+          d="M10 18h9c17 0 9 28 26 28h8"
+          fill="none"
+          stroke="#66c0f4"
           strokeLinecap="round"
-          strokeWidth="1.6"
+          strokeWidth="6"
+        />
+        <path
+          d="M10 46h9c17 0 9-28 26-28h8"
+          fill="none"
+          stroke="#c7d5e0"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <path
+          d="m49 13 6 5-6 5M49 41l6 5-6 5"
+          fill="none"
+          stroke="#fff"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
         />
       </svg>
     ),

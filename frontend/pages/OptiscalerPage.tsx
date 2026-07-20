@@ -120,9 +120,6 @@ export function OptiscalerPage({
               } else if (enableValue === undefined || enableValue === "0") {
                 setEnvironmentValue(OPTISCALER_ENABLE_KEY, "1");
               }
-              if (checked && !name) {
-                setEnvironmentValue(OPTISCALER_NAME_KEY, OPTISCALER_NAME_SUGGESTIONS[0]);
-              }
             }}
           >
             <BaseSwitch.Thumb className="lw-switch-thumb" />
@@ -149,6 +146,7 @@ export function OptiscalerPage({
             onValueChange={(value) =>
               setEnvironmentValue(OPTISCALER_NAME_KEY, value.length ? value : null)
             }
+            placeholder="dxgi.dll"
             suggestions={OPTISCALER_NAME_SUGGESTIONS}
             value={name}
           />

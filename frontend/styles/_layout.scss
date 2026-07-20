@@ -36,16 +36,32 @@
 }
 
 .lw-tab {
+  align-items: center;
   appearance: none;
   background: transparent;
   border: 0;
   border-radius: 0.125rem;
   color: var(--lw-muted);
   cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
   min-height: 2.5rem;
   padding: 0.625rem 0.75rem;
   text-align: left;
   width: 100%;
+}
+
+.lw-tab-count {
+  background: rgb(102 192 244 / 15%);
+  border-radius: 999px;
+  color: var(--lw-accent);
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 1.25rem;
+  padding: 0.125rem 0.375rem;
+  text-align: center;
 }
 
 .lw-tab:hover:not(:disabled) {

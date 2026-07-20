@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">LaunchWeaver</title>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#171d25" stroke="#2a475e" stroke-width="4"/>
+  <path d="M10 18h9c17 0 9 28 26 28h8" fill="none" stroke="#66c0f4" stroke-width="6" stroke-linecap="round"/>
+  <path d="M10 46h9c17 0 9-28 26-28h8" fill="none" stroke="#c7d5e0" stroke-width="6" stroke-linecap="round"/>
+  <path d="m49 13 6 5-6 5M49 41l6 5-6 5" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -2,6 +2,7 @@ import React from "react";
 import { Tabs } from "@base-ui/react/tabs";
 import { Button } from "../components/controls";
 import { Notice } from "../components/layout";
+import { isHiddenEnvironmentKey } from "../features/environment/model";
 import {
   EnvironmentPage,
   type EnvironmentPageProps,
@@ -48,6 +49,15 @@ export function EditorView({
   parameters,
   wrappers,
 }: EditorViewProps) {
+  const hiddenEnvironmentCount = environment.rows.filter(({ key }) =>
+    isHiddenEnvironmentKey(key),
+  ).length;
+  const tabCounts = {
+    environment: environment.rows.length - hiddenEnvironmentCount,
+    optiscaler: optiscaler.rows.length + hiddenEnvironmentCount,
+    parameters: parameters.rows.length,
+    wrappers: wrappers.rows.length,
+  };
   const page = (id: (typeof TABS)[number]["id"], title: string, content: React.ReactNode) => (
     <Tabs.Panel className="lw-page" keepMounted key={id} value={id}>
       <h1 className="lw-page-title">{title}</h1>
@@ -69,13 +79,30 @@ export function EditorView({
       orientation="vertical"
     >
       <aside className="lw-sidebar">
-        <div className="lw-brand">LAUNCHWEAVER</div>
+        <div className="lw-brand">LaunchWeaver</div>
         <Tabs.List activateOnFocus aria-label="LaunchWeaver sections" className="lw-tabs">
-          {TABS.map(({ id, label }) => (
-            <Tabs.Tab className="lw-tab" key={id} value={id}>
-              {label}
-            </Tabs.Tab>
-          ))}
+          {TABS.map(({ id, label }) => {
+            const count = tabCounts[id];
+            return (
+              <Tabs.Tab
+                aria-label={
+                  count
+                    ? `${label}, ${count} configured ${count === 1 ? "item" : "items"}`
+                    : label
+                }
+                className="lw-tab"
+                key={id}
+                value={id}
+              >
+                <span>{label}</span>
+                {count > 0 && (
+                  <span aria-hidden="true" className="lw-tab-count">
+                    {count}
+                  </span>
+                )}
+              </Tabs.Tab>
+            );
+          })}
         </Tabs.List>
       </aside>
 

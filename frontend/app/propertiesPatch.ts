@@ -59,14 +59,14 @@ function addEditorButton(
   button.setAttribute(BUTTON_ATTRIBUTE, "true");
   button.type = "button";
   button.className = "launchweaver-open-button";
-  button.textContent = "Launch Options Editor";
-  button.setAttribute("aria-label", "Open Launch Options Editor");
-  button.title = "Open Launch Options Editor";
+  button.textContent = "Edit in LaunchWeaver";
+  button.setAttribute("aria-label", "Edit in LaunchWeaver");
+  button.title = "Edit in LaunchWeaver";
   let editorOpen = false;
   const setEditorOpen = (open: boolean) => {
     editorOpen = open;
     button.disabled = open;
-    button.textContent = open ? "Launch Options Editor open" : "Launch Options Editor";
+    button.textContent = open ? "LaunchWeaver is open" : "Edit in LaunchWeaver";
   };
   button.addEventListener("click", () => {
     if (editorOpen) return;
@@ -107,7 +107,7 @@ function addEditorButton(
       );
     } catch (error) {
       setEditorOpen(false);
-      console.error("[LaunchWeaver] Could not open the launch options editor.", error);
+      console.error("[LaunchWeaver] Could not open the editor.", error);
     }
   });
 
