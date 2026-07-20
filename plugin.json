@@ -3,7 +3,7 @@
   "name": "launch-weaver",
   "common_name": "LaunchWeaver",
   "description": "Structured Steam launch options and per-game OptiScaler.ini editing.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "useBackend": true,
   "backendType": "lua"
 }
