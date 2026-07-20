@@ -28,7 +28,6 @@ import {
 } from "../features/optiscaler/model";
 import { parseWrapperRows } from "../features/wrappers/model";
 import type {
-  AppActivity,
   DraftOptiscalerConfigRow,
   OptiscalerLoadStatus,
 } from "../pages/OptiscalerPage";
@@ -97,7 +96,6 @@ export function useEditorController({
     React.useState<DraftOptiscalerConfigRow[]>([]);
   const [optiscalerLoadMessage, setOptiscalerLoadMessage] =
     React.useState<string | null>(null);
-  const [activity, setActivity] = React.useState<AppActivity>("unknown");
   const [resetRequested, setResetRequested] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
   const [applying, setApplying] = React.useState(false);
@@ -129,23 +127,6 @@ export function useEditorController({
     return () => {
       active = false;
     };
-  }, [appId]);
-
-  React.useEffect(() => {
-    if (typeof SteamClient === "undefined") return;
-
-    try {
-      const registration = SteamClient.GameSessions.RegisterForAppLifetimeNotifications(
-        (notification) => {
-          if (notification.unAppID === appId) {
-            setActivity(notification.bRunning ? "running" : "stopped");
-          }
-        },
-      );
-      return () => registration.unregister();
-    } catch {
-      return;
-    }
   }, [appId]);
 
   const parsedWrapperRows = parseWrapperRows(wrapperRows);
@@ -206,16 +187,14 @@ export function useEditorController({
   const wrappedConfigOverrideNotice = currentWrappedConfig
     ? "A wrapper argument sets PROTON_OPTISCALER_CONFIG, which can override direct INI changes. Remove that wrapper row before using the direct INI editor."
     : null;
+  const dlssUpgradeOverlap =
+    parsedWrapperRows.tokens.includes("dlss-swapper") &&
+    environmentRows.some(
+      ({ key, value }) => key === "PROTON_DLSS_UPGRADE" && value !== "0",
+    );
   const launchValidationError = parsed.error
     ? null
-    : (parsedWrapperRows.tokens.includes("dlss-swapper") &&
-        environmentRows.some(
-          ({ key, value }) => key === "PROTON_DLSS_UPGRADE" && value !== "0",
-        )
-        ? "DLSS Swapper cannot be combined with PROTON_DLSS_UPGRADE."
-        : null) ||
-      parsedWrapperRows.error ||
-      getLaunchOptionsError(launchOptions);
+    : parsedWrapperRows.error || getLaunchOptionsError(launchOptions);
   const validationError =
     unparsedConfigOverrideError ||
     (optiscalerDirty ? configOverrideError || wrappedConfigOverrideNotice : null) ||
@@ -249,11 +228,6 @@ export function useEditorController({
   const apply = async () => {
     if (validationError || applying) return;
     setMessage(null);
-
-    if (optiscalerDirty && activity === "running") {
-      setMessage("Close the game before editing OptiScaler.ini.");
-      return;
-    }
 
     setApplying(true);
     const messages = {
@@ -324,6 +298,9 @@ export function useEditorController({
   const notice =
     validationError ||
     message ||
+    (dlssUpgradeOverlap
+      ? "DLSS Swapper and PROTON_DLSS_UPGRADE both update DLSS; using both may be redundant."
+      : null) ||
     configOverrideError ||
     wrappedConfigOverrideNotice ||
     launchParseNotice;
@@ -345,7 +322,6 @@ export function useEditorController({
     noticeTone: validationError ? "error" : "warning",
     onApply: () => void apply(),
     optiscaler: {
-      activity,
       disabled: iniEditingDisabled,
       document: optiscalerDocument,
       environmentRows,

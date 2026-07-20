@@ -3,13 +3,13 @@ export interface NativeLaunchOptionsBridge {
   write(value: string): void;
 }
 
-export interface LaunchOptionsIO {
+interface LaunchOptionsIO {
   readCurrent(): Promise<string | null>;
   waitFor(expected: string): Promise<string | null>;
   write(value: string): void;
 }
 
-export type LaunchOptionsApplyResult =
+type LaunchOptionsApplyResult =
   | "applied"
   | "failed"
   | "stale"

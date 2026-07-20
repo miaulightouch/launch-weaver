@@ -121,6 +121,37 @@
   grid-area: value;
 }
 
+.lw-optiscaler-row {
+  align-items: center;
+  display: grid;
+  gap: 0.375rem 0.5rem;
+  grid-template-areas:
+    "section option option"
+    "value value remove";
+  grid-template-columns:
+    minmax(0, 0.65fr)
+    minmax(0, 1.35fr)
+    1.75rem;
+  padding: 0.5rem;
+}
+
+.lw-optiscaler-section {
+  grid-area: section;
+}
+
+.lw-optiscaler-option {
+  grid-area: option;
+}
+
+.lw-optiscaler-value {
+  grid-area: value;
+}
+
+.lw-optiscaler-row > .lw-row-remove {
+  border-radius: 0.125rem;
+  grid-area: remove;
+}
+
 .lw-token-row {
   align-items: center;
   display: grid;

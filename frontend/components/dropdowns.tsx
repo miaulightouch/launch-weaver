@@ -11,7 +11,7 @@ export interface SelectOption {
   value: string;
 }
 
-export interface SelectFieldProps {
+interface SelectFieldProps {
   ariaLabel: string;
   className?: string;
   disabled?: boolean;
@@ -125,7 +125,7 @@ export function SelectField({
   );
 }
 
-export interface EditableDropdownProps {
+interface EditableDropdownProps {
   ariaLabel: string;
   className?: string;
   disabled?: boolean;

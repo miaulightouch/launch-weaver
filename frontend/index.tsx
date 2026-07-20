@@ -1,10 +1,9 @@
 import React from "react";
 import * as client from "@steambrew/client";
-import { openEditor } from "./app/openEditor";
 import { installPropertiesPatch } from "./app/propertiesPatch";
 
 export default client.definePlugin(() => {
-  const uninstallPropertiesPatch = installPropertiesPatch(openEditor);
+  const uninstallPropertiesPatch = installPropertiesPatch();
 
   return {
     title: "LaunchWeaver",

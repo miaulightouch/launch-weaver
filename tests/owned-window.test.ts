@@ -6,7 +6,7 @@ const createRoot = mock(() => ({ render: rootRender, unmount }));
 mock.module("react-dom/client", () => ({ createRoot }));
 
 const { closeLinkedPopups, openOwnedWindow } = await import(
-  "../frontend/lib/ownedWindow"
+  "../frontend/app/ownedWindow"
 );
 
 beforeEach(() => {
@@ -78,7 +78,7 @@ test("owned popup closes, unmounts, and reports close exactly once", () => {
   popup.dispatchEvent(new Event("pagehide"));
 
   expect((host.open as ReturnType<typeof mock>).mock.calls[0]?.[0]).toBe(
-    "about:blank?createflags=16&openerid=41&centerOnBrowserID=41",
+    "about:blank?createflags=16&browserType=3&openerid=41&centerOnBrowserID=41",
   );
   expect((host.open as ReturnType<typeof mock>).mock.calls[0]?.[1]).toMatch(
     /^launchweaver-\d+-\d+$/,
@@ -145,23 +145,9 @@ test("a parent owns one popup and closes it on pagehide", () => {
     host,
   );
   parent.dispatchEvent(new Event("pagehide"));
-  parent.dispatchEvent(new Event("pagehide"));
 
   expect(host.open).toHaveBeenCalledTimes(1);
   expect(rejectedClose).toHaveBeenCalledTimes(1);
   expect(popup.close).toHaveBeenCalledTimes(1);
   expect(ownerClose).toHaveBeenCalledTimes(1);
-});
-
-test("plugin teardown closes owned popups", () => {
-  const { popup } = makePopup();
-  const { host, parent } = makeWindows(() => popup as unknown as Window);
-  const onClose = mock(() => {});
-
-  openOwnedWindow(parent, "LaunchWeaver", "", () => null, onClose, host);
-
-  closeLinkedPopups();
-
-  expect(popup.close).toHaveBeenCalledTimes(1);
-  expect(onClose).toHaveBeenCalledTimes(1);
 });

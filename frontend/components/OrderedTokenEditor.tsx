@@ -4,11 +4,10 @@ import { type DropPosition, useRowDrag } from "./useRowDrag";
 
 export type DraftToken = { id: string; originalValue?: string; value: string };
 
-export interface OrderedTokenEditorProps {
+interface OrderedTokenEditorProps {
   addLabel: string;
   description: string;
   disabled: boolean;
-  onAdd(): void;
   reorderable?: boolean;
   rows: DraftToken[];
   setRows: React.Dispatch<React.SetStateAction<DraftToken[]>>;
@@ -38,7 +37,6 @@ export function OrderedTokenEditor({
   addLabel,
   description,
   disabled,
-  onAdd,
   reorderable = true,
   rows,
   setRows,
@@ -109,7 +107,15 @@ export function OrderedTokenEditor({
         )}
 
         <div className="lw-compact-footer">
-          <Button disabled={disabled} onClick={onAdd}>
+          <Button
+            disabled={disabled}
+            onClick={() =>
+              setRows((current) => [
+                ...current,
+                { id: crypto.randomUUID(), value: "" },
+              ])
+            }
+          >
             {addLabel}
           </Button>
         </div>

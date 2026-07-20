@@ -18,12 +18,10 @@ import { Button } from "../components/controls";
 import { EditableDropdown, SelectField } from "../components/dropdowns";
 import { FieldCard, Notice } from "../components/layout";
 
-export type AppActivity = "running" | "stopped" | "unknown";
 export type OptiscalerLoadStatus = "checking" | "ready" | "unavailable";
 export type DraftOptiscalerConfigRow = OptiscalerConfigRow & { id: string };
 
 export interface OptiscalerPageProps {
-  activity: AppActivity;
   disabled: boolean;
   document: OptiscalerDocument | null;
   environmentRows: DraftEnvironmentVariable[];
@@ -38,7 +36,6 @@ export interface OptiscalerPageProps {
 }
 
 export function OptiscalerPage({
-  activity,
   disabled,
   document,
   environmentRows,
@@ -71,13 +68,8 @@ export function OptiscalerPage({
     if (loadStatus === "unavailable" || !document) {
       return "The installed OptiScaler.ini could not be resolved.";
     }
-    if (activity === "running") return "Close the game before resetting OptiScaler.ini.";
     return null;
   })();
-  const resetAvailabilityNote =
-    activity === "unknown" && loadStatus === "ready"
-      ? "Steam activity is unavailable here; the backend will verify that the game is stopped."
-      : null;
   const usedKeys = new Set(rows.map(optiscalerRowKey));
   const availableRows =
     document?.rows.filter((row) => !usedKeys.has(optiscalerRowKey(row))) ?? [];
@@ -176,8 +168,9 @@ export function OptiscalerPage({
       )}
 
       {loadStatus === "unavailable" && (
-        <Notice tone="error">
-          {loadMessage ?? "The installed OptiScaler.ini is unavailable."}
+        <Notice tone="info">
+          {loadMessage ?? "The installed OptiScaler.ini is unavailable."} If this is a
+          new setup, run the game once with OptiScaler enabled, then reopen this editor.
         </Notice>
       )}
 
@@ -185,7 +178,9 @@ export function OptiscalerPage({
         <FieldCard
           description={
             document.path +
-            (document.snapshot.exists ? "" : " · OptiScaler.ini is missing")
+            (document.snapshot.exists
+              ? ""
+              : " · Run the game once with OptiScaler enabled to create OptiScaler.ini")
           }
           label={"OptiScaler " + document.snapshot.version}
         >
@@ -194,76 +189,71 @@ export function OptiscalerPage({
       )}
 
       {document && loadStatus === "ready" ? (
-        <div className="lw-stack">
+        <div className="lw-compact-table">
           {rows.map((row, index) => (
-            <FieldCard
-              description={"[" + row.section + "]"}
+            <div
+              className="lw-compact-row lw-optiscaler-row"
               key={row.id}
-              label={row.option}
-              layout="stacked"
             >
-              <div>
-                <div className="lw-controls">
-                  <span className="lw-label">Section</span>
-                  <SelectField
-                    ariaLabel={"OptiScaler setting " + (index + 1) + " section"}
-                    disabled={configDisabled}
-                    onValueChange={(value) => changeSection(row, value)}
-                    options={[
-                      ...new Set([
-                        row.section,
-                        ...availableRows.map(({ section }) => section),
-                      ]),
-                    ].map((section) => ({ label: section, value: section }))}
-                    value={row.section}
-                  />
+              <SelectField
+                ariaLabel={"OptiScaler setting " + (index + 1) + " section"}
+                className="lw-optiscaler-section"
+                disabled={configDisabled}
+                onValueChange={(value) => changeSection(row, value)}
+                options={[
+                  ...new Set([
+                    row.section,
+                    ...availableRows.map(({ section }) => section),
+                  ]),
+                ].map((section) => ({ label: section, value: section }))}
+                value={row.section}
+              />
 
-                  <span className="lw-label">Option</span>
-                  <SelectField
-                    ariaLabel={"OptiScaler setting " + (index + 1) + " option"}
-                    disabled={configDisabled}
-                    onValueChange={(value) => changeOption(row, value)}
-                    options={[row, ...availableRows]
-                      .filter((entry) => entry.section === row.section)
-                      .map(({ option }) => ({ label: option, value: option }))}
-                    value={row.option}
-                  />
+              <SelectField
+                ariaLabel={"OptiScaler setting " + (index + 1) + " option"}
+                className="lw-optiscaler-option"
+                disabled={configDisabled}
+                onValueChange={(value) => changeOption(row, value)}
+                options={[row, ...availableRows]
+                  .filter((entry) => entry.section === row.section)
+                  .map(({ description, option }) => ({
+                    description,
+                    label: option,
+                    value: option,
+                  }))}
+                value={row.option}
+              />
 
-                  <span className="lw-label">Value</span>
-                  <EditableDropdown
-                    ariaLabel={"OptiScaler setting " + (index + 1) + " value"}
-                    disabled={configDisabled}
-                    onValueChange={(value) => updateRow(row.id, { value })}
-                    suggestions={["auto", "true", "false", "0", "1"]}
-                    value={row.value}
-                  />
-                </div>
+              <EditableDropdown
+                ariaLabel={"OptiScaler setting " + (index + 1) + " value"}
+                className="lw-optiscaler-value"
+                disabled={configDisabled}
+                onValueChange={(value) => updateRow(row.id, { value })}
+                suggestions={["auto", "true", "false", "0", "1"]}
+                value={row.value}
+              />
 
-                <div className="lw-actions">
-                  <Button
-                    disabled={configDisabled}
-                    onClick={() =>
-                      setRows((current) => current.filter(({ id }) => id !== row.id))
-                    }
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            </FieldCard>
+              <Button
+                aria-label={"Remove OptiScaler setting " + (index + 1)}
+                className="lw-row-remove"
+                disabled={configDisabled}
+                onClick={() =>
+                  setRows((current) => current.filter(({ id }) => id !== row.id))
+                }
+                title="Remove setting"
+              >
+                ×
+              </Button>
+            </div>
           ))}
 
           {rows.length === 0 && (
-            <FieldCard
-              description="Add an existing INI option to change it from auto."
-              label="No custom settings"
-            />
+            <div className="lw-compact-empty">
+              No custom settings. Add an existing INI option to change it from auto.
+            </div>
           )}
 
-          <FieldCard
-            description="Choose another existing OptiScaler.ini option."
-            label="Add setting"
-          >
+          <div className="lw-compact-footer">
             <Button
               disabled={configDisabled || availableRows.length === 0}
               onClick={() => {
@@ -276,9 +266,9 @@ export function OptiscalerPage({
                 }
               }}
             >
-              Add
+              Add setting
             </Button>
-          </FieldCard>
+          </div>
         </div>
       ) : null}
 
@@ -292,7 +282,6 @@ export function OptiscalerPage({
             resetRequested
               ? "Pending: restore the installed default and back up the current file."
               : resetBlockReason ??
-                resetAvailabilityNote ??
                 "The reset is performed when you Apply changes."
           }
           label="Reset OptiScaler.ini"

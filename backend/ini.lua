@@ -108,6 +108,7 @@ local function parse(contents)
     local index = {}
     local rows = {}
     local section
+    local comments = {}
 
     for line_index, line in ipairs(lines) do
         local found_section, malformed_section = parse_section(line.body, line_index == 1)
@@ -116,9 +117,14 @@ local function parse(contents)
         end
         if found_section then
             section = found_section
+            comments = {}
         elseif section then
             local assignment = parse_assignment(line.body)
             if assignment then
+                local inline_comment = assignment.suffix:match('[;#]%s*(.-)%s*$')
+                if inline_comment and inline_comment ~= '' then
+                    table.insert(comments, inline_comment)
+                end
                 local assignment_key = key(section, assignment.option)
                 if index[assignment_key] then
                     return nil, ('Duplicate OptiScaler option: %s.%s'):format(section, assignment.option)
@@ -127,10 +133,20 @@ local function parse(contents)
                 line.assignment = assignment
                 index[assignment_key] = assignment
                 table.insert(rows, {
+                    description = #comments > 0 and table.concat(comments, '\n') or nil,
                     option = assignment.option,
                     section = section,
                     value = assignment.value,
                 })
+                comments = {}
+            else
+                local stripped = trim(line.body)
+                local comment = stripped:match('^[;#]%s*(.+)$')
+                if comment and not comment:match('^%-+$') then
+                    table.insert(comments, trim(comment))
+                elseif stripped ~= '' and not comment then
+                    comments = {}
+                end
             end
         end
     end

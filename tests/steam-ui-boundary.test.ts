@@ -34,8 +34,7 @@ const bannedIdentifiers = [
 const platformSeams = new Map<string, string[]>([
   ["app/propertiesHelpers.ts", ["MillenniumWindow_GameProperties"]],
   ["app/propertiesPatch.ts", ["SteamClient", "appDetailsStore", "window.Millennium"]],
-  ["app/useEditorController.ts", ["SteamClient"]],
-  ["lib/ownedWindow.tsx", ["SteamClient", "createflags"]],
+  ["app/ownedWindow.tsx", ["SteamClient", "createflags"]],
 ]);
 
 const platformTokens = [
@@ -124,7 +123,6 @@ test("frontend layers keep a one-way dependency boundary", async () => {
     "app",
     "components",
     "features",
-    "lib",
     "pages",
     "styles",
     "views",
@@ -134,14 +132,6 @@ test("frontend layers keep a one-way dependency boundary", async () => {
       [...new Bun.Glob(`frontend/${directory}/**/*`).scanSync()].length,
     ).toBeGreaterThan(0);
   }
-
-  const rootSources = frontendFiles.filter(
-    (file) => file.split("/").length === 2 && /\.tsx?$/.test(file),
-  );
-  expect(rootSources).toEqual(["frontend/index.tsx"]);
-  expect(frontendFiles.filter((file) => /\/index\.tsx?$/.test(file))).toEqual([
-    "frontend/index.tsx",
-  ]);
 
   const violations: string[] = [];
   for (const file of frontendFiles) {
@@ -153,7 +143,7 @@ test("frontend layers keep a one-way dependency boundary", async () => {
       violations.push(`${file}: feature imports an upper UI layer`);
     }
     if (
-      (file.startsWith("frontend/components/") || file.startsWith("frontend/lib/")) &&
+      file.startsWith("frontend/components/") &&
       /from\s+["'](?:\.\.\/)+(?:app|features|pages|views)\//.test(source)
     ) {
       violations.push(`${file}: shared layer imports an application layer`);

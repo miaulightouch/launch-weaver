@@ -56,18 +56,6 @@ local function decode_file(path, max_size)
     return decoded
 end
 
-local function cache_root()
-    local root = utils.getenv('XDG_CACHE_HOME')
-    if root and root ~= '' then
-        return root
-    end
-
-    local home = utils.getenv('HOME')
-    if home and home ~= '' then
-        return fs.join(home, '.cache')
-    end
-end
-
 local function find_manifest_item(manifest, version)
     local matches = {}
     if type(manifest.optiscaler) ~= 'table' then
@@ -114,22 +102,21 @@ local function valid_version(value)
 end
 
 local function get_manifest_item(version)
-    local root = cache_root()
     local reply = http.get(MANIFEST_URL, {
         timeout = 20,
         user_agent = 'LaunchWeaver/0.1',
         verify_ssl = true,
     })
     if not reply or reply.status ~= 200 or type(reply.body) ~= 'string' or #reply.body > MAX_MANIFEST_SIZE then
-        return nil, nil, 'Could not load the official OptiScaler manifest.'
+        return nil, 'Could not load the official OptiScaler manifest.'
     end
 
     local ok, manifest = pcall(json.decode, reply.body)
     local item = ok and type(manifest) == 'table' and find_manifest_item(manifest, version)
     if not item then
-        return nil, nil, 'The installed OptiScaler version is absent from the official manifest.'
+        return nil, 'The installed OptiScaler version is absent from the official manifest.'
     end
-    return item, root
+    return item
 end
 
 local function installed_version(tracker)
@@ -265,19 +252,10 @@ local function md5(path)
     return output:match('^([%da-fA-F]+)')
 end
 
-local function verified_archive(item, cache)
-    local name = ('optiscaler_v%s.tar.xz'):format(item.version)
-    local cached = cache and fs.join(cache, 'protonfixes', 'upscalers', name)
-    if cached and fs.is_file(cached) and fs.file_size(cached) == item.zip_file_size then
-        local digest = md5(cached)
-        if digest and digest:lower() == item.zip_md5_hash:lower() then
-            return cached
-        end
-    end
-
+local function verified_archive(item)
     local temporary = os.tmpname()
     if type(temporary) ~= 'string' or temporary == '' then
-        return nil, nil, 'Could not create a temporary OptiScaler archive path.'
+        return nil, 'Could not create a temporary OptiScaler archive path.'
     end
     local reply = http.download(item.download_url, temporary, {
         timeout = 30,
@@ -293,15 +271,15 @@ local function verified_archive(item, cache)
         or size ~= item.zip_file_size
     then
         fs.remove(temporary)
-        return nil, nil, 'Could not download the exact installed OptiScaler archive.'
+        return nil, 'Could not download the exact installed OptiScaler archive.'
     end
 
     local digest = md5(temporary)
     if not digest or digest:lower() ~= item.zip_md5_hash:lower() then
         fs.remove(temporary)
-        return nil, nil, 'The OptiScaler archive checksum did not match the official manifest.'
+        return nil, 'The OptiScaler archive checksum did not match the official manifest.'
     end
-    return temporary, temporary
+    return temporary
 end
 
 local function extract_default_ini(archive)
@@ -457,20 +435,18 @@ local function snapshots_match(expected, actual)
 end
 
 local function load_exact_defaults(version)
-    local item, cache, manifest_error = get_manifest_item(version)
+    local item, manifest_error = get_manifest_item(version)
     if not item then
         return nil, manifest_error
     end
 
-    local archive, temporary_archive, archive_error = verified_archive(item, cache)
+    local archive, archive_error = verified_archive(item)
     if not archive then
         return nil, archive_error
     end
 
     local defaults = extract_default_ini(archive)
-    if temporary_archive then
-        fs.remove(temporary_archive)
-    end
+    fs.remove(archive)
     if not defaults then
         return nil, 'The official archive did not contain a valid OptiScaler.ini.'
     end

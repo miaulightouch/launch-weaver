@@ -20,12 +20,6 @@ export function ParametersPage({
       addLabel="Add parameter"
       description="One game argument per row. Spaces stay inside that argument; an empty row passes an empty argument."
       disabled={disabled}
-      onAdd={() =>
-        setRows((current) => [
-          ...current,
-          { id: crypto.randomUUID(), value: "" },
-        ])
-      }
       rows={rows}
       setRows={setRows}
       singular="Parameter"

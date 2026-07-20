@@ -1,4 +1,5 @@
 export interface OptiscalerConfigRow {
+  description?: string;
   section: string;
   option: string;
   value: string;

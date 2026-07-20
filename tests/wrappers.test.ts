@@ -34,3 +34,19 @@ test("wrapper rows safely expand commands while retaining quick-add identity", (
     "shell syntax",
   );
 });
+
+test("treats bash -c as an ordinary wrapper command", () => {
+  const parsed = parseWrapperRows([{ value: `bash -c 'exec "$@"' --` }]);
+
+  expect(parsed).toEqual({
+    error: null,
+    tokens: ["bash", "-c", `exec "$@"`, "--"],
+  });
+  expect(
+    serializeLaunchOptions(parseLaunchOptions(""), {
+      env: [],
+      parameters: [],
+      wrappers: parsed.tokens,
+    }),
+  ).toBe(`bash -c 'exec "$@"' -- %command%`);
+});

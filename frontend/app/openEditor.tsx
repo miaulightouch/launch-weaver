@@ -1,8 +1,8 @@
 import React from "react";
 import type { NativeLaunchOptionsBridge } from "../features/launch-options/apply";
-import { openOwnedWindow } from "../lib/ownedWindow";
 import editorStyles from "../styles/editor.scss";
 import { EditorView } from "../views/EditorView";
+import { openOwnedWindow } from "./ownedWindow";
 import { useEditorController } from "./useEditorController";
 
 function EditorApp({
@@ -22,6 +22,7 @@ function EditorApp({
 
 export function openEditor(
   appId: number,
+  appName: string,
   raw: string,
   bridge: NativeLaunchOptionsBridge,
   parent: Window,
@@ -29,7 +30,7 @@ export function openEditor(
 ) {
   openOwnedWindow(
     parent,
-    "LaunchWeaver · App " + appId,
+    `LaunchWeaver · ${appName}`,
     editorStyles,
     (close) => (
       <EditorApp appId={appId} bridge={bridge} closeModal={close} raw={raw} />

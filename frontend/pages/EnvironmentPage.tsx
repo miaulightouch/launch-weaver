@@ -35,18 +35,21 @@ function presetForKey(key: string, group?: EnvironmentGroup): EnvironmentPreset 
 export function environmentPresetOptions(
   presets: readonly EnvironmentPreset[],
 ): SelectOption[] {
-  const options = presets.map(({ description, key, supportedBy }) => ({
-    description: supportedBy?.length
-      ? `${supportedBy.map((variant) => `[${variant}]`).join(" ")}\n${description}`
-      : description,
-    group: supportedBy?.length
-      ? supportedBy.length === 1
-        ? `Proton-${supportedBy[0]}`
-        : "Proton forks — shared"
-      : undefined,
-    label: key,
-    value: key,
-  }));
+  const options = presets.map(({ description, key, supportedBy }) => {
+    const support = supportedBy?.map((variant) => `Proton-${variant}`);
+    return {
+      description: support?.length
+        ? `${support.map((variant) => `[${variant}]`).join(" ")}\n${description}`
+        : description,
+      group: support?.length
+        ? support.length === 1
+          ? support[0]
+          : "Proton forks — shared"
+        : undefined,
+      label: key,
+      value: key,
+    };
+  });
 
   return [...new Set(options.map(({ group }) => group))].flatMap((group) =>
     options

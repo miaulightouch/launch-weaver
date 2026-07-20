@@ -1,6 +1,7 @@
 import type { NativeLaunchOptionsBridge } from "../features/launch-options/apply";
-import { closeLinkedPopups } from "../lib/ownedWindow";
 import propertiesStyles from "../styles/properties.scss";
+import { openEditor } from "./openEditor";
+import { closeLinkedPopups } from "./ownedWindow";
 import {
   getLaunchOptionsFieldRoot,
   getPropertiesLaunchOptions,
@@ -15,8 +16,6 @@ const BUTTON_ATTRIBUTE = "data-launchweaver-editor";
 const STYLE_ATTRIBUTE = "data-launchweaver-style";
 const LAUNCH_OPTIONS_TOKEN = "AppProperties_LaunchOptionsSection";
 const editorInputs = new WeakMap<Element, HTMLInputElement | HTMLTextAreaElement>();
-
-type OpenEditor = typeof import("./openEditor").openEditor;
 
 function getLaunchOptionsTitle() {
   const manager = window.LocalizationManager;
@@ -39,7 +38,6 @@ function addEditorButton(
   target: PropertiesTarget,
   input: HTMLInputElement | HTMLTextAreaElement,
   launchOptionsTitle: string | null,
-  openEditor: OpenEditor,
 ) {
   const { appId } = target;
   const details = window.appDetailsStore?.GetAppDetails(appId);
@@ -97,9 +95,16 @@ function addEditorButton(
     };
     setEditorOpen(true);
     try {
-      openEditor(appId, input.value, bridge, parent, () => {
-        setEditorOpen(false);
-      });
+      openEditor(
+        appId,
+        currentDetails.strDisplayName || `App ${appId}`,
+        input.value,
+        bridge,
+        parent,
+        () => {
+          setEditorOpen(false);
+        },
+      );
     } catch (error) {
       setEditorOpen(false);
       console.error("[LaunchWeaver] Could not open the launch options editor.", error);
@@ -111,7 +116,7 @@ function addEditorButton(
   return true;
 }
 
-export function installPropertiesPatch(openEditor: OpenEditor) {
+export function installPropertiesPatch() {
   let cancelled = false;
   const observers = new Map<
     Document,
@@ -150,7 +155,7 @@ export function installPropertiesPatch(openEditor: OpenEditor) {
       for (const input of document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
         LAUNCH_OPTIONS_INPUT_SELECTOR,
       )) {
-        if (addEditorButton(target, input, launchOptionsTitle, openEditor)) break;
+        if (addEditorButton(target, input, launchOptionsTitle)) break;
       }
     };
 

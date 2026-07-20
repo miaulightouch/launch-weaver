@@ -12,6 +12,7 @@ local tracker_reads_137 = 0
 local defaults = '[Upscalers]\nDx12Upscaler=auto\n'
 local archive_defaults = defaults
 local files = {
+    ['/mock/cache/protonfixes/upscalers/optiscaler_v0.9.3.tar.xz'] = 'ARCHIVE',
     ['/usr/bin/md5sum'] = true,
     ['/usr/bin/tar'] = true,
 }
@@ -25,7 +26,7 @@ local function game(app_id, contents)
 end
 
 game(124, 'custom remote')
-game(125, '; lead\r\n[Upscalers]\r\nDx12Upscaler = fsr31 ; keep\r\n\r\n[Custom]\r\nFoo=bar\r\n')
+game(125, '; lead\r\n[Upscalers]\r\n; Select the DirectX 12 upscaler.\r\nDx12Upscaler = fsr31 ; keep\r\n\r\n[Custom]\r\nFoo=bar\r\n')
 game(126, '; lead\r\n[Upscalers]\r\nDx12Upscaler = fsr31 ; keep\r\n\r\n[Custom]\r\nFoo=bar\r\n')
 for _, app_id in ipairs({ 127, 128, 129, 132, 135, 137, 139 }) do game(app_id, defaults) end
 game(130, '[Upscalers]\nDx12Upscaler=xess\n')
@@ -204,6 +205,8 @@ local backend_directory = backend_main:gsub('\\', '/'):match('^(.*)/[^/]+$') or 
 package.path = backend_directory .. '/?.lua;' .. package.path
 
 local plugin = dofile(backend_main)
+local described = assert(require('ini').parse('[Section]\n; First line\n\n; Second line\nOption=auto\n'))
+assert(described.rows[1].description == 'First line\nSecond line')
 
 local function config_path(app_id)
     return ('/mock/steam/steamapps/compatdata/%d/pfx/drive_c/windows/system32/umu/OptiScaler.ini'):format(app_id)
@@ -270,12 +273,13 @@ assert(read:find('"ok":true', 1, true), read)
 assert(read:find('"path":"' .. config_path(125) .. '"', 1, true), read)
 assert(read:find('"option":"Dx12Upscaler"', 1, true), read)
 assert(read:find('"value":"fsr31"', 1, true), read)
+assert(read:find('"description":"Select the DirectX 12 upscaler.', 1, true), read)
 assert(read:find('"digest":"' .. snapshot_for(125).digest .. '"', 1, true), read)
 
 local original_125 = files[config_path(125)]
 local applied = apply_optiscaler(patch_request('apply_125', 125, 'xess', 'dx12upscaler'))
 assert(applied:find('"ok":true', 1, true), applied)
-assert(files[config_path(125)] == '; lead\r\n[Upscalers]\r\nDx12Upscaler = xess ; keep\r\n\r\n[Custom]\r\nFoo=bar\r\n')
+assert(files[config_path(125)] == '; lead\r\n[Upscalers]\r\n; Select the DirectX 12 upscaler.\r\nDx12Upscaler = xess ; keep\r\n\r\n[Custom]\r\nFoo=bar\r\n')
 assert(files[config_path(125) .. '.launch-weaver.1234567890.bak'] == original_125)
 
 local original_126 = files[config_path(126)]

@@ -16,13 +16,12 @@ function createHostPopup(host: HostWindow, parent: HostWindow, name: string) {
   if (parentPopupBrowserID === undefined) {
     throw new Error("Steam's parent window API is unavailable.");
   }
-  const popup = host.open(
-    `about:blank?createflags=16&openerid=${parentPopupBrowserID}&centerOnBrowserID=${parentPopupBrowserID}`,
+  // EBrowserType.DirectHWND supplies native window controls and drag behavior.
+  return host.open(
+    `about:blank?createflags=16&browserType=3&openerid=${parentPopupBrowserID}&centerOnBrowserID=${parentPopupBrowserID}`,
     name,
     "top=0,left=0,width=850,height=722,resizable=yes,status=0,toolbar=0,menubar=0,location=0",
   );
-
-  return popup;
 }
 
 export function openOwnedWindow(
@@ -39,14 +38,13 @@ export function openOwnedWindow(
   }
 
   const uniqueName = `launchweaver-${Date.now()}-${nextWindowId++}`;
-  let created: ReturnType<typeof createHostPopup>;
+  let popup: ReturnType<typeof createHostPopup>;
   try {
-    created = createHostPopup(host as HostWindow, parent as HostWindow, uniqueName);
+    popup = createHostPopup(host as HostWindow, parent as HostWindow, uniqueName);
   } catch (error) {
     onClose();
     throw error;
   }
-  const popup = created;
   if (!popup) {
     onClose();
     throw new Error("LaunchWeaver popup was blocked.");

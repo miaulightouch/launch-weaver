@@ -66,6 +66,8 @@ function parseOptiscalerDocument(raw: string): OptiscalerDocument {
       (row) =>
         typeof row === "object" &&
         row !== null &&
+        (typeof (row as OptiscalerConfigRow).description === "undefined" ||
+          typeof (row as OptiscalerConfigRow).description === "string") &&
         typeof (row as OptiscalerConfigRow).section === "string" &&
         typeof (row as OptiscalerConfigRow).option === "string" &&
         typeof (row as OptiscalerConfigRow).value === "string",

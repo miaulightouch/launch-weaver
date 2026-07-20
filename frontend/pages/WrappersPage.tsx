@@ -54,12 +54,6 @@ export function WrappersPage({
         addLabel="Add wrapper"
         description="One wrapper command per row. Arguments may follow the executable; quote an argument to keep its spaces."
         disabled={disabled}
-        onAdd={() =>
-          setRows((current) => [
-            ...current,
-            { id: crypto.randomUUID(), value: "" },
-          ])
-        }
         reorderable={false}
         rows={rows}
         setRows={setRows}
