@@ -93,4 +93,4 @@ Built with [Millennium](https://github.com/SteamClientHomebrew/Millennium) and [
 
 ## License
 
-No open-source license has been selected yet. All rights are reserved for now.
+LaunchWeaver is released under the [MIT License](LICENSE).

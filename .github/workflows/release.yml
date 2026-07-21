@@ -32,7 +32,7 @@ jobs:
       - name: Package plugin
         run: |
           mkdir -p release/launch-weaver/.millennium/Dist release/launch-weaver/backend
-          cp plugin.json README.md release/launch-weaver/
+          cp plugin.json README.md LICENSE release/launch-weaver/
           cp -R assets release/launch-weaver/
           cp .millennium/Dist/index.js release/launch-weaver/.millennium/Dist/
           cp backend/main.lua backend/ini.lua release/launch-weaver/backend/
