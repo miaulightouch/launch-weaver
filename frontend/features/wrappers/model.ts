@@ -5,14 +5,14 @@ import {
 
 export const QUICK_WRAPPERS = [
   {
-    description: "Runs the game through Feral GameMode.",
-    label: "GameMode",
-    value: "gamemoderun",
-  },
-  {
     description: "Launches the game with the MangoHud performance overlay.",
     label: "MangoHud",
     value: "mangohud",
+  },
+  {
+    description: "Runs the game through Feral GameMode.",
+    label: "GameMode",
+    value: "gamemoderun",
   },
   {
     description: "Enables NGX DLL updates and forces the latest DLSS presets before launching the game.",
