@@ -27,6 +27,10 @@ import {
   type OptiscalerDocument,
 } from "../features/optiscaler/model";
 import { parseWrapperRows } from "../features/wrappers/model";
+import {
+  type AvailableUpdate,
+  checkForUpdate,
+} from "../features/update/model";
 import type {
   DraftOptiscalerConfigRow,
   OptiscalerLoadStatus,
@@ -99,6 +103,17 @@ export function useEditorController({
   const [resetRequested, setResetRequested] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
   const [applying, setApplying] = React.useState(false);
+  const [update, setUpdate] = React.useState<AvailableUpdate | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    void checkForUpdate().then((available) => {
+      if (active) setUpdate(available);
+    }).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   React.useEffect(() => {
     let active = true;
@@ -339,6 +354,7 @@ export function useEditorController({
       rows: parameterRows,
       setRows: setParameterRows,
     },
+    update,
     wrappers: {
       disabled: launchEditingDisabled,
       rows: wrapperRows,

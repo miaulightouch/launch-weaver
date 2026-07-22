@@ -3,6 +3,7 @@ import { Tabs } from "@base-ui/react/tabs";
 import { Button } from "../components/controls";
 import { Notice } from "../components/layout";
 import { isHiddenEnvironmentKey } from "../features/environment/model";
+import type { AvailableUpdate } from "../features/update/model";
 import {
   EnvironmentPage,
   type EnvironmentPageProps,
@@ -34,6 +35,7 @@ export interface EditorViewProps {
   onApply(): void;
   optiscaler: OptiscalerPageProps;
   parameters: ParametersPageProps;
+  update: AvailableUpdate | null;
   wrappers: WrappersPageProps;
 }
 
@@ -47,6 +49,7 @@ export function EditorView({
   onApply,
   optiscaler,
   parameters,
+  update,
   wrappers,
 }: EditorViewProps) {
   const hiddenEnvironmentCount = environment.rows.filter(({ key }) =>
@@ -61,6 +64,12 @@ export function EditorView({
   const page = (id: (typeof TABS)[number]["id"], title: string, content: React.ReactNode) => (
     <Tabs.Panel className="lw-page" keepMounted key={id} value={id}>
       <h1 className="lw-page-title">{title}</h1>
+      {update && (
+        <Notice tone="info">
+          LaunchWeaver {update.version} is available. {" "}
+          <a href={update.url} rel="noreferrer" target="_blank">View release</a>
+        </Notice>
+      )}
       {notice && <Notice tone={noticeTone}>{notice}</Notice>}
       {content}
     </Tabs.Panel>

@@ -8,6 +8,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "skipLibCheck": true
   },
   "include": ["frontend/**/*.ts", "frontend/**/*.tsx"]

@@ -1,4 +1,5 @@
 import type { NativeLaunchOptionsBridge } from "../features/launch-options/apply";
+import { checkForUpdate } from "../features/update/model";
 import propertiesStyles from "../styles/properties.scss";
 import { openEditor } from "./openEditor";
 import { closeLinkedPopups } from "./ownedWindow";
@@ -117,6 +118,7 @@ function addEditorButton(
 }
 
 export function installPropertiesPatch() {
+  void checkForUpdate().catch(() => {});
   let cancelled = false;
   const observers = new Map<
     Document,
