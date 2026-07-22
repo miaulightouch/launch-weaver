@@ -13,6 +13,36 @@ export type DraftEnvironmentVariable = EnvironmentVariable & {
 export const OPTISCALER_ENABLE_KEY = "PROTON_USE_OPTISCALER";
 export const OPTISCALER_NAME_KEY = "PROTON_OPTISCALER_NAME";
 
+export const QUICK_ENVIRONMENT_VARIABLES = [
+  {
+    description: "Enable the native Wine Wayland driver.",
+    group: "Proton",
+    key: "PROTON_ENABLE_WAYLAND",
+    label: "Enable Wayland Support",
+    value: "1",
+  },
+  {
+    description: "Expose HDR support through DXVK.",
+    group: "DXVK",
+    key: "DXVK_HDR",
+    label: "Enable HDR Supprot",
+    value: "1",
+  },
+  {
+    description: "Enable Discord Rich Presence through rpc-bridge.",
+    group: "Proton",
+    key: "PROTON_DISCORD_BRIDGE",
+    label: "Discord Bridge",
+    value: "1",
+  },
+] as const satisfies readonly {
+  description: string;
+  group: EnvironmentGroup;
+  key: string;
+  label: string;
+  value: string;
+}[];
+
 type DropPosition = "after" | "before";
 
 export function isHiddenEnvironmentKey(key: string) {

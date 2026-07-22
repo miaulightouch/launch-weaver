@@ -145,11 +145,6 @@ export const PROTON_PRESETS = [
     description: "Force FNA3D games to use the D3D11 renderer.",
   },
   {
-    key: "GST_GL_WINDOW",
-    value: "",
-    description: "Override the GStreamer OpenGL window backend.",
-  },
-  {
     key: "PROTON_ENABLE_HDR",
     value: "1",
     suggestions: ["1", "0"],

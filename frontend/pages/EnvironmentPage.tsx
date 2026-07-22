@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  DISCORD_BRIDGE_PRESET,
   ENVIRONMENT_PRESET_GROUPS,
   ENVIRONMENT_PRESETS,
   type EnvironmentPreset,
@@ -10,6 +9,7 @@ import {
   type EnvironmentGroup,
   getEnvironmentValue,
   isHiddenEnvironmentKey,
+  QUICK_ENVIRONMENT_VARIABLES,
   reorderVisibleEnvironmentRows,
 } from "../features/environment/model";
 import { Button, QuickAddButton, TextInput } from "../components/controls";
@@ -72,8 +72,6 @@ export function EnvironmentPage({
   setRows,
 }: EnvironmentPageProps) {
   const visibleRows = rows.filter(({ key }) => !isHiddenEnvironmentKey(key));
-  const discordEnabled =
-    getEnvironmentValue(rows, DISCORD_BRIDGE_PRESET.key) === DISCORD_BRIDGE_PRESET.value;
   const updateRow = (id: string, change: Partial<DraftEnvironmentVariable>) => {
     setRows((current) =>
       current.map((entry) => (entry.id === id ? { ...entry, ...change } : entry)),
@@ -106,23 +104,25 @@ export function EnvironmentPage({
 
   return (
     <section>
-      <div className="lw-quick-add-section">
-        <div className="lw-quick-add-grid">
-          <QuickAddButton
-            added={discordEnabled}
-            disabled={disabled}
-            label="Discord Bridge"
-            onClick={() =>
-              setEnvironmentValue(
-                DISCORD_BRIDGE_PRESET.key,
-                DISCORD_BRIDGE_PRESET.value,
-                "Proton",
-              )
-            }
-            tooltip={`Adds ${DISCORD_BRIDGE_PRESET.key}=${DISCORD_BRIDGE_PRESET.value}. ${DISCORD_BRIDGE_PRESET.description}`}
-          />
+      <section aria-label="Quick environment variables" className="lw-quick-add-section">
+        <div className="lw-section-heading">
+          <p>Each button adds its variable to the environment list below.</p>
         </div>
-      </div>
+        <div className="lw-quick-add-grid">
+          {QUICK_ENVIRONMENT_VARIABLES.map(
+            ({ description, group, key, label, value }) => (
+              <QuickAddButton
+                added={getEnvironmentValue(rows, key) === value}
+                disabled={disabled}
+                key={key}
+                label={label}
+                onClick={() => setEnvironmentValue(key, value, group)}
+                tooltip={description}
+              />
+            ),
+          )}
+        </div>
+      </section>
 
       <div className="lw-compact-table">
         {visibleRows.map((row, index) => {
