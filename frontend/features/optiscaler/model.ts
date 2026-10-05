@@ -100,3 +100,26 @@ export function getOptiscalerChanges(
 export function customizedOptiscalerRows(rows: OptiscalerConfigRow[]) {
   return rows.filter(({ value }) => value.toLowerCase() !== "auto");
 }
+
+export function isProcessFilterField(row: OptiscalerConfigRow) {
+  return row.section === "ProcessFilter" && ["targetprocessname", "processexclusionlist"].includes(row.option.toLowerCase());
+}
+
+/** Discover suggestions from the installed version's comments, not a fixed schema. */
+export function optiscalerValueSuggestions(row: OptiscalerConfigRow): string[] {
+  const suggestions = new Set(["auto"]);
+  if (!isProcessFilterField(row)) {
+    for (const line of (row.description ?? "").split("\n")) {
+      const values = line.replace(/\([^)]*\)/g, "").split(/\s+-\s+Default/i)[0]!.trim();
+      const parts = values.split(",").map(value => value.trim());
+      if (parts.length > 1 && parts.every(value => /^[\w.+-]+$/.test(value))) {
+        parts.forEach(value => suggestions.add(value));
+      }
+    }
+    if (suggestions.size === 1 && /\btrue or false\b/i.test(row.description ?? "")) {
+      suggestions.add("true"); suggestions.add("false");
+    }
+  }
+  if (row.value && row.value.toLowerCase() !== "auto") suggestions.add(row.value);
+  return [...suggestions];
+}

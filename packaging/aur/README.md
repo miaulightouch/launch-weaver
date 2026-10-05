@@ -2,7 +2,7 @@
 
 `launch-weaver-standalone-git` builds the standalone app from the default Git branch. It does not install the Millennium plugin. Its package version comes from `desktop/src-tauri/Cargo.toml`, followed by the repository revision count and commit.
 
-Before publishing to AUR, push the standalone sources, lockfiles and `desktop/launch-weaver-standalone.desktop` to the upstream repository. Existing plugin release tags do not contain the standalone app. The AUR repository only needs `PKGBUILD` and `.SRCINFO`; the desktop entry and icons are installed from upstream source.
+Before publishing to AUR, push the standalone sources, lockfiles and `desktop/LaunchWeaver.desktop` to the upstream repository. Existing plugin release tags do not contain the standalone app. The AUR repository only needs `PKGBUILD` and `.SRCINFO`; the desktop entry and icons are installed from upstream source.
 
 On Arch Linux with `base-devel` and an AUR-provided `bun` package installed:
 

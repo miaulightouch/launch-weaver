@@ -6,7 +6,7 @@
 .lw-tab[aria-current="page"] { background: var(--lw-selected); color: var(--lw-text); }
 .lw-library-empty { padding: 3rem 1rem; text-align: center; color: var(--lw-muted); border: 1px dashed var(--lw-border); border-radius: .5rem; }
 .lw-library-empty h2 { color: var(--lw-text); }
-.lw-library-main { grid-template-rows: minmax(0, 1fr); }
+:root[data-lw-theme="desktop"] .lw-root { height: 100dvh; }
 .lw-game-context strong { line-height: 1.4; }
 
 .lw-dialog-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 60%); z-index: 2000; }

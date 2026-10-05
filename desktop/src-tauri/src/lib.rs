@@ -1,5 +1,6 @@
 mod artwork;
 pub mod optiscaler;
+pub mod window_geometry;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};

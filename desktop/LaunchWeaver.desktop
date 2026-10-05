@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=LaunchWeaver — standalone
-Comment=Launch settings and OptiScaler editor for Heroic and Faugus
+Name=LaunchWeaver
+Comment=Game launch settings and OptiScaler editor
 Exec=launch-weaver-standalone
 Icon=launch-weaver-standalone
 Terminal=false
 Categories=Game;
 Keywords=Heroic;Faugus;Proton;OptiScaler;
+StartupWMClass=LaunchWeaver

@@ -5,6 +5,8 @@ import {
   getOptiscalerChanges,
   getOptiscalerConfigError,
   hasWrappedOptiscalerConfig,
+  isProcessFilterField,
+  optiscalerValueSuggestions,
   OPTISCALER_NAME_SUGGESTIONS,
 } from "../frontend/features/optiscaler/model";
 
@@ -83,5 +85,26 @@ describe("OptiScaler direct INI model", () => {
         { section: "Upscalers", option: "Dx12", value: "FSR31" },
       ]),
     ).toEqual([{ section: "Upscalers", option: "Dx12", value: "FSR31" }]);
+  });
+});
+
+describe("current INI option controls", () => {
+  test("recognizes process fields without hiding future options", () => {
+    expect(isProcessFilterField({ section: "ProcessFilter", option: "targetprocessname", value: "auto" })).toBe(true);
+    expect(isProcessFilterField({ section: "ProcessFilter", option: "FutureOption", value: "auto" })).toBe(false);
+  });
+  test("suggests version-specific enums and free text instead of boolean values everywhere", () => {
+    expect(optiscalerValueSuggestions({ section: "Upscalers", option: "Dx12Upscaler", value: "auto", description: "Select upscaler\nxess, fsr21, fsr22, ffx (FSR 2.3; 3.1; 4.x), dlss\nDefault (auto) is DLSS" })).toEqual(["auto", "xess", "fsr21", "fsr22", "ffx", "dlss"]);
+    expect(optiscalerValueSuggestions({ section: "FrameGen", option: "Enabled", value: "auto", description: "true or false - Default (auto) is false" })).toEqual(["auto", "true", "false"]);
+    expect(optiscalerValueSuggestions({ section: "ProcessFilter", option: "TargetProcessName", value: "Endfield.exe" })).toEqual(["auto", "Endfield.exe"]);
+    expect(optiscalerValueSuggestions({ section: "Paths", option: "CustomPath", value: "auto" })).toEqual(["auto"]);
+  });
+  test("process filters preserve executable names and pipe-separated exclusions", () => {
+    const next = [
+      { section: "ProcessFilter", option: "TargetProcessName", value: "Endfield.exe" },
+      { section: "ProcessFilter", option: "ProcessExclusionList", value: "launcher.exe|crashpad_handler.exe" },
+    ];
+    expect(getOptiscalerConfigError(next)).toBeNull();
+    expect(getOptiscalerChanges([], next)).toEqual(next.map(row => ({ ...row, action: "set" })));
   });
 });

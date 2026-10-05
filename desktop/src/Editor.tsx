@@ -91,7 +91,7 @@ export function Editor({ initial, close }: { initial: GameDocument; close(): voi
     optiscaler={{ ...optiscaler, disabled: busy, launchDisabled: disabled, environmentRows: env, setEnvironmentValue }}
     environment={{ disabled, rows: env, setRows: setEnv, setEnvironmentValue }}
     parameters={{ disabled, rows: parameters, setRows: setParameters }} wrappers={{ disabled, rows: wrappers, setRows: setWrappers, excludedQuickWrappers: ["mangohud", "gamemoderun"] }}
-    notice={validation || message || saved || (dirty ? `Close ${document.game.launcher === "heroic" ? "Heroic" : "Faugus"} before applying changes.` : null)}
+    notice={validation || message || saved || (Object.keys(patch).length ? `Close ${document.game.launcher === "heroic" ? "Heroic" : "Faugus"} before applying changes.` : null)}
     noticeTone={validation || message ? "error" : saved ? "info" : "warning"} onApply={() => void apply()} update={null} />
     <AlertDialog.Root open={pending !== null} onOpenChange={(open) => { if (!open) setPending(null); }}>
       <AlertDialog.Portal container={window.document.querySelector<HTMLElement>(".lw-root")}><AlertDialog.Backdrop className="lw-dialog-backdrop" /><AlertDialog.Popup className="lw-discard-dialog">

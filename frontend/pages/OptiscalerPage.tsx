@@ -11,6 +11,7 @@ import {
   CACHY_OPTISCALER_NAME_SUGGESTIONS,
   OPTISCALER_NAME_SUGGESTIONS,
   optiscalerRowKey,
+  optiscalerValueSuggestions,
   type OptiscalerConfigRow,
   type OptiscalerDocument,
 } from "../features/optiscaler/model";
@@ -227,7 +228,7 @@ export function OptiscalerPage({
                 className="lw-optiscaler-value"
                 disabled={configDisabled}
                 onValueChange={(value) => updateRow(row.id, { value })}
-                suggestions={["auto", "true", "false", "0", "1"]}
+                suggestions={optiscalerValueSuggestions(row)}
                 value={row.value}
               />
 

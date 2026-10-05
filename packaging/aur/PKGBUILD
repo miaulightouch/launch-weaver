@@ -1,8 +1,8 @@
 # Maintainer: miaulightouch (https://github.com/miaulightouch)
 pkgname=launch-weaver-standalone-git
-pkgver=0.1.0.r16.gc30b74a
+pkgver=0.1.1.r18.g8732490
 pkgrel=1
-pkgdesc='Launch settings and OptiScaler editor for Heroic and Faugus'
+pkgdesc='Game launch settings and OptiScaler editor'
 arch=('x86_64')
 url='https://github.com/miaulightouch/launch-weaver'
 license=('MIT' 'GPL-3.0-only')
@@ -44,15 +44,15 @@ check() {
   bun run desktop:typecheck
   bun test tests/desktop-launchers.test.ts tests/optiscaler.test.ts
   cargo test --manifest-path desktop/src-tauri/Cargo.toml --no-default-features --frozen
-  desktop-file-validate desktop/launch-weaver-standalone.desktop
+  desktop-file-validate desktop/LaunchWeaver.desktop
 }
 
 package() {
   cd "${srcdir}/launch-weaver"
   install -Dm755 "${srcdir}/target/release/launch-weaver-desktop" \
     "${pkgdir}/usr/bin/launch-weaver-standalone"
-  install -Dm644 desktop/launch-weaver-standalone.desktop \
-    "${pkgdir}/usr/share/applications/launch-weaver-standalone.desktop"
+  install -Dm644 desktop/LaunchWeaver.desktop \
+    "${pkgdir}/usr/share/applications/LaunchWeaver.desktop"
   local size
   for size in 32 128; do
     install -Dm644 "desktop/src-tauri/icons/${size}x${size}.png" \

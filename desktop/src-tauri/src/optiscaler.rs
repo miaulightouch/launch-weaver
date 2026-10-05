@@ -200,43 +200,6 @@ pub(super) fn load(target: &Target) -> Result<Document> {
         snapshot: snapshot(&installation, contents.as_deref()),
     })
 }
-fn stopped(target: &Target, installation: &Installation) -> Result<()> {
-    ensure_launcher_closed(&target.game.launcher)?;
-    use std::os::unix::fs::MetadataExt;
-    let uid = fs::metadata("/proc/self").map_err(|e| e.to_string())?.uid();
-    for entry in fs::read_dir("/proc").map_err(|e| e.to_string())?.flatten() {
-        if entry.file_name().to_string_lossy().parse::<u32>().is_err() {
-            continue;
-        }
-        let env = match fs::read(entry.path().join("environ")) {
-            Ok(env) => env,
-            Err(_)
-                if entry.path().exists()
-                    && fs::metadata(entry.path()).is_ok_and(|m| m.uid() == uid) =>
-            {
-                return Err("Could not check whether the game is running.".into())
-            }
-            Err(_) => continue,
-        };
-        for variable in env.split(|b| *b == 0) {
-            let variable = String::from_utf8_lossy(variable);
-            for key in [
-                "WINEPREFIX=",
-                "STEAM_COMPAT_DATA_PATH=",
-                "HEROIC_GAME_PREFIX=",
-            ] {
-                if let Some(value) = variable.strip_prefix(key) {
-                    if Path::new(value).canonicalize().is_ok_and(|path| {
-                        path == installation.prefix || path.starts_with(&installation.prefix)
-                    }) {
-                        return Err("Close the game before editing OptiScaler.ini.".into());
-                    }
-                }
-            }
-        }
-    }
-    Ok(())
-}
 // Capture bounded stdout without extracting any archive paths onto disk.
 fn output(command: &mut Command, limit: usize) -> Result<Vec<u8>> {
     let mut child = command
@@ -335,18 +298,16 @@ pub(super) fn save(
     changes: Value,
     reset: bool,
 ) -> Result<Document> {
-    save_with(target, expected, changes, reset, stopped, exact_defaults)
+    save_with(target, expected, changes, reset, exact_defaults)
 }
 fn save_with(
     target: &Target,
     expected: Snapshot,
     changes: Value,
     reset: bool,
-    check_stopped: impl Fn(&Target, &Installation) -> Result<()>,
     get_defaults: impl Fn(&str) -> Result<String>,
 ) -> Result<Document> {
     let installation = resolve(target)?;
-    check_stopped(target, &installation)?;
     let current = contents(&installation)?;
     if snapshot(&installation, current.as_deref()) != expected {
         return Err("OptiScaler settings changed. Reload before applying.".into());
@@ -391,7 +352,6 @@ fn save_with(
     temp.write_all(replacement.as_bytes())
         .and_then(|_| temp.as_file().sync_all())
         .map_err(|e| e.to_string())?;
-    check_stopped(target, &installation)?;
     if resolve(target)? != installation || contents(&installation)? != current {
         return Err("OptiScaler installation changed during save. Reload before applying.".into());
     }
@@ -466,17 +426,30 @@ mod tests {
         changes: Value,
         reset: bool,
     ) -> Result<Document> {
-        save_with(
-            target,
-            snapshot,
-            changes,
-            reset,
-            |_, _| Ok(()),
-            |version| {
-                assert_eq!(version, "0.9.0");
-                Ok("[General]\nOption=auto\nOther=auto\n".into())
-            },
-        )
+        save_with(target, snapshot, changes, reset, |version| {
+            assert_eq!(version, "0.9.0");
+            Ok("[General]\nOption=auto\nOther=auto\n".into())
+        })
+    }
+    #[test]
+    fn saves_process_exclusion_list_and_returns_updated_snapshot() {
+        let (_dir, target, path) = fixture(Launcher::Heroic, false);
+        let original = "[ProcessFilter]\nProcessExclusionList=auto\n";
+        fs::write(&path, original).unwrap();
+        let doc = load(&target).unwrap();
+        let saved = save(
+            &target,
+            doc.snapshot.clone(),
+            json!([{"action":"set","section":"ProcessFilter","option":"ProcessExclusionList","value":"launcher.exe|crashpad_handler.exe"}]),
+            false,
+        ).unwrap();
+        assert_ne!(saved.snapshot, doc.snapshot);
+        assert_eq!(saved.rows[0]["value"], "launcher.exe|crashpad_handler.exe");
+        assert_eq!(load(&target).unwrap().snapshot, saved.snapshot);
+        assert_eq!(
+            fs::read_to_string(path.with_file_name("OptiScaler.ini.bak")).unwrap(),
+            original
+        );
     }
     #[test]
     fn resolves_both_launcher_prefix_layouts_and_preserves_format() {
@@ -573,28 +546,18 @@ mod tests {
         assert!(offline_save(&target, doc.snapshot, json!([]), true).is_err());
     }
     #[test]
-    fn stops_before_write_if_game_starts_or_target_changes() {
+    fn stops_before_write_if_ini_changes_during_save() {
         let (_dir, target, path) = fixture(Launcher::Faugus, false);
         let doc = load(&target).unwrap();
-        let original = fs::read(&path).unwrap();
-        let count = std::cell::Cell::new(0);
-        let result = save_with(
-            &target,
-            doc.snapshot,
-            json!([]),
-            true,
-            |_, _| {
-                count.set(count.get() + 1);
-                if count.get() > 1 {
-                    Err("Game started".into())
-                } else {
-                    Ok(())
-                }
-            },
-            |_| Ok("[General]\nOption=false\n".into()),
+        let result = save_with(&target, doc.snapshot, json!([]), true, |_| {
+            fs::write(&path, "[General]\nOption=external\n").unwrap();
+            Ok("[General]\nOption=false\n".into())
+        });
+        assert!(result.err().unwrap().contains("changed during save"));
+        assert_eq!(
+            fs::read_to_string(&path).unwrap(),
+            "[General]\nOption=external\n"
         );
-        assert!(result.is_err());
-        assert_eq!(fs::read(&path).unwrap(), original);
         assert!(!path.with_file_name("OptiScaler.ini.bak").exists());
     }
 }

@@ -1,11 +1,11 @@
 [package]
 name = "launch-weaver-desktop"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [features]
 default = ["desktop"]
-desktop = ["dep:tauri", "dep:tauri-build", "dep:tauri-plugin-single-instance"]
+desktop = ["dep:tauri", "dep:tauri-build", "dep:tauri-plugin-single-instance", "dep:glib"]
 
 [build-dependencies]
 tauri-build = { version = "2", optional = true , features = [] }
@@ -24,3 +24,6 @@ mlua = { version = "0.11", features = ["lua54", "vendored", "serialize"] }
 name = "launch-weaver-desktop"
 path = "src/main.rs"
 required-features = ["desktop"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+glib = { version = "0.18", optional = true }

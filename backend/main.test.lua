@@ -424,3 +424,13 @@ assert(read_optiscaler('not-json'):find('Invalid OptiScaler read request.', 1, t
 
 plugin.on_load()
 assert(ready)
+
+-- Current upstream ProcessFilter values are filenames/lists, not booleans.
+local current_ini = '[ProcessFilter]\r\nTargetProcessName=auto ; target\r\nProcessExclusionList=auto\r\n[FrameGen]\r\nFGNvngxReplacement=auto\r\n'
+local ini_parser = require('ini')
+local filter_changes = assert(ini_parser.normalize_changes({
+    { action = 'set', section = 'ProcessFilter', option = 'TargetProcessName', value = 'Endfield.exe' },
+    { action = 'set', section = 'ProcessFilter', option = 'ProcessExclusionList', value = 'launcher.exe|crashpad_handler.exe' },
+}))
+local filtered_ini = assert(ini_parser.patch(current_ini, filter_changes))
+assert(filtered_ini == '[ProcessFilter]\r\nTargetProcessName=Endfield.exe ; target\r\nProcessExclusionList=launcher.exe|crashpad_handler.exe\r\n[FrameGen]\r\nFGNvngxReplacement=auto\r\n')
