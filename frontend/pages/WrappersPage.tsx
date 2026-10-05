@@ -11,12 +11,14 @@ import {
 } from "../features/wrappers/model";
 
 export interface WrappersPageProps {
+  excludedQuickWrappers?: readonly QuickWrapper[];
   disabled: boolean;
   rows: DraftToken[];
   setRows: React.Dispatch<React.SetStateAction<DraftToken[]>>;
 }
 
 export function WrappersPage({
+  excludedQuickWrappers = [],
   disabled,
   rows,
   setRows,
@@ -34,7 +36,7 @@ export function WrappersPage({
           <p>Each button adds its executable to the wrapper list below.</p>
         </div>
         <div className="lw-quick-add-grid">
-          {QUICK_WRAPPERS.map(({ description, label, value }) => {
+          {QUICK_WRAPPERS.filter(({ value }) => !excludedQuickWrappers.includes(value)).map(({ description, label, value }) => {
             const added = hasQuickWrapper(rows, value);
             return (
               <QuickAddButton

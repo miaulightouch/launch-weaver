@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "vite/client"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "../frontend/components/**/*",
+    "../frontend/pages/**/*",
+    "../frontend/features/**/*"
+  ]
+}

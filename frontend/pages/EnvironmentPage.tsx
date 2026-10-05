@@ -60,18 +60,20 @@ export function environmentPresetOptions(
 
 export interface EnvironmentPageProps {
   disabled: boolean;
+  includeHidden?: boolean;
   rows: DraftEnvironmentVariable[];
   setEnvironmentValue(key: string, value: string | null, group?: EnvironmentGroup): void;
   setRows: React.Dispatch<React.SetStateAction<DraftEnvironmentVariable[]>>;
 }
 
 export function EnvironmentPage({
+  includeHidden = false,
   disabled,
   rows,
   setEnvironmentValue,
   setRows,
 }: EnvironmentPageProps) {
-  const visibleRows = rows.filter(({ key }) => !isHiddenEnvironmentKey(key));
+  const visibleRows = rows.filter(({ key }) => includeHidden || !isHiddenEnvironmentKey(key));
   const updateRow = (id: string, change: Partial<DraftEnvironmentVariable>) => {
     setRows((current) =>
       current.map((entry) => (entry.id === id ? { ...entry, ...change } : entry)),
@@ -97,7 +99,7 @@ export function EnvironmentPage({
     visibleRows.map(({ id }) => id),
     (sourceId, targetId, position) => {
       setRows((current) =>
-        reorderVisibleEnvironmentRows(current, sourceId, targetId, position),
+        reorderVisibleEnvironmentRows(current, sourceId, targetId, position, includeHidden),
       );
     },
   );

@@ -34,3 +34,17 @@ is no generic utility dumping ground.
 
 - [Millennium plugin file structure](https://docs.steambrew.app/plugins/structure/file-structure)
 - [Bulletproof React project structure](https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md)
+
+## Shared standalone UI
+
+`desktop/src/Editor.tsx` composes the same `EditorView`, pages and components with
+launcher-specific state. `EditorView` accepts an optional OptiScaler capability;
+the Steam controller supplies it, while standalone omits it. The standalone
+environment page displays all keys rather than hiding OptiScaler keys behind a
+tab it does not provide. Steam integration remains under `frontend/app/`.
+
+SCSS tokens default to the original Steam palette. The standalone document sets
+`data-lw-theme="desktop"` on its root, so both editor content and body-mounted
+popup portals inherit the purple palette. Do not add product-specific colors to
+shared components. The standalone build supplies its own React runtime; TTC
+continues to use Steam's runtime for the plugin.

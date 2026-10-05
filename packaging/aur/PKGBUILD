@@ -1,0 +1,70 @@
+# Maintainer: miaulightouch (https://github.com/miaulightouch)
+pkgname=launch-weaver-standalone-git
+pkgver=0.1.0.r16.gc30b74a
+pkgrel=1
+pkgdesc='Launch settings and OptiScaler editor for Heroic and Faugus'
+arch=('x86_64')
+url='https://github.com/miaulightouch/launch-weaver'
+license=('MIT' 'GPL-3.0-only')
+depends=(
+  'cairo' 'dbus' 'gcc-libs' 'gdk-pixbuf2' 'glib2' 'glibc' 'gtk3'
+  'hicolor-icon-theme' 'libsoup3' 'webkit2gtk-4.1'
+  'curl' 'xz'
+)
+makedepends=('bun' 'git' 'nodejs' 'rust')
+checkdepends=('desktop-file-utils')
+provides=('launch-weaver-standalone')
+conflicts=('launch-weaver-standalone')
+options=('!lto')
+source=("launch-weaver::git+${url}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/launch-weaver"
+  local version
+  version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' desktop/src-tauri/Cargo.toml | head -n 1)
+  printf '%s.r%s.g%s' "$version" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "${srcdir}/launch-weaver"
+  bun install --frozen-lockfile
+  cargo fetch --manifest-path desktop/src-tauri/Cargo.toml --locked
+}
+
+build() {
+  cd "${srcdir}/launch-weaver"
+  export CARGO_TARGET_DIR="${srcdir}/target"
+  bun run desktop:build --ci --no-bundle -- --frozen
+}
+
+check() {
+  cd "${srcdir}/launch-weaver"
+  export CARGO_TARGET_DIR="${srcdir}/target"
+  bun run desktop:typecheck
+  bun test tests/desktop-launchers.test.ts tests/optiscaler.test.ts
+  cargo test --manifest-path desktop/src-tauri/Cargo.toml --no-default-features --frozen
+  desktop-file-validate desktop/launch-weaver-standalone.desktop
+}
+
+package() {
+  cd "${srcdir}/launch-weaver"
+  install -Dm755 "${srcdir}/target/release/launch-weaver-desktop" \
+    "${pkgdir}/usr/bin/launch-weaver-standalone"
+  install -Dm644 desktop/launch-weaver-standalone.desktop \
+    "${pkgdir}/usr/share/applications/launch-weaver-standalone.desktop"
+  local size
+  for size in 32 128; do
+    install -Dm644 "desktop/src-tauri/icons/${size}x${size}.png" \
+      "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/launch-weaver-standalone.png"
+  done
+  install -Dm644 desktop/src-tauri/icons/128x128@2x.png \
+    "${pkgdir}/usr/share/icons/hicolor/256x256/apps/launch-weaver-standalone.png"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  local notice
+  for notice in HEROIC-LICENSE FAUGUS-LICENSE NOTICE.md; do
+    install -Dm644 "desktop/src/assets/launchers/${notice}" \
+      "${pkgdir}/usr/share/licenses/${pkgname}/${notice}"
+  done
+  install -Dm644 desktop/README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+}

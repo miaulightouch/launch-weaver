@@ -40,3 +40,8 @@ test("environment drag reorder preserves hidden OptiScaler slots", () => {
   );
   expect(reorderVisibleEnvironmentRows(original, "A", "A", "after")).toBe(original);
 });
+
+test("standalone can reorder OptiScaler environment keys alongside other keys", () => {
+  const original = [row("A"), row("optiscaler", "PROTON_USE_OPTISCALER"), row("B")];
+  expect(reorderVisibleEnvironmentRows(original, "optiscaler", "B", "after", true).map(({ id }) => id)).toEqual(["A", "B", "optiscaler"]);
+});

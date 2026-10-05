@@ -9,7 +9,7 @@
 }
 
 .lw-section-heading h2 {
-  color: #ffffff;
+  color: var(--lw-white);
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
@@ -66,17 +66,17 @@
 }
 
 .lw-button-secondary {
-  background: #3b4552;
+  background: var(--lw-button);
   color: var(--lw-text);
 }
 
 .lw-button-secondary:hover:not(:disabled) {
-  background: #4a5665;
+  background: var(--lw-button-hover);
 }
 
 .lw-button-primary {
   background: var(--lw-accent);
-  color: #07121a;
+  color: var(--lw-on-accent);
 }
 
 .lw-button-primary:hover:not(:disabled) {
@@ -128,7 +128,7 @@
 }
 
 .lw-select-value[data-placeholder] {
-  color: #7f8997;
+  color: var(--lw-placeholder);
 }
 
 .lw-select-icon {
@@ -169,7 +169,7 @@
 
 .lw-switch {
   align-items: center;
-  background: #596473;
+  background: var(--lw-switch);
   border: 0;
   border-radius: 999px;
   cursor: pointer;
@@ -185,7 +185,7 @@
 }
 
 .lw-switch-thumb {
-  background: #ffffff;
+  background: var(--lw-white);
   border-radius: 50%;
   height: 1.125rem;
   transform: translateX(0);
@@ -214,11 +214,11 @@
 
 .lw-popup,
 .lw-tooltip-popup {
-  background: #111820;
-  border: 1px solid #536173;
+  background: var(--lw-input);
+  border: 1px solid var(--lw-popup-border);
   border-radius: 0.125rem;
   box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 35%);
-  color: #f1f3f5;
+  color: var(--lw-text);
   max-width: min(24rem, var(--available-width));
   transform-origin: var(--transform-origin);
   transition: opacity 80ms ease, transform 80ms ease;
@@ -251,14 +251,14 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0.25rem;
-  scrollbar-color: #4a5565 transparent;
+  scrollbar-color: var(--lw-scrollbar) transparent;
   scrollbar-width: thin;
 }
 
 .lw-select-group-label {
   background: rgb(26 159 255 / 12%);
-  border-block: 1px solid #3d5268;
-  color: #66c0f4;
+  border-block: 1px solid var(--lw-highlight);
+  color: var(--lw-heading);
   font-size: 0.75rem;
   font-weight: 700;
   margin: 0.25rem 0;
@@ -285,12 +285,12 @@
 }
 
 .lw-popup-item[data-highlighted] {
-  background: #3d5268;
-  color: #ffffff;
+  background: var(--lw-highlight);
+  color: var(--lw-white);
 }
 
 .lw-item-indicator {
-  color: #1a9fff;
+  color: var(--lw-accent);
   visibility: hidden;
 }
 
@@ -299,7 +299,7 @@
 }
 
 .lw-popup-empty {
-  color: #aeb7c4;
+  color: var(--lw-muted);
   padding: 0.75rem;
 }
 
@@ -311,17 +311,17 @@
 
 .lw-notice[data-tone="warning"] {
   background: rgb(255 212 121 / 8%);
-  color: #ffd479;
+  color: var(--lw-warning);
 }
 
 .lw-notice[data-tone="error"] {
   background: rgb(255 138 138 / 8%);
-  color: #ff8a8a;
+  color: var(--lw-error);
 }
 
 .lw-notice[data-tone="info"] {
   background: rgb(158 216 245 / 8%);
-  color: #9ed8f5;
+  color: var(--lw-info);
 }
 
 .lw-notice a {

@@ -1,0 +1,69 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use launch_weaver_desktop::{Discovery, Document, Library, Saved};
+use tauri::Manager;
+#[tauri::command]
+fn discover_games(library: tauri::State<'_, Library>) -> Result<Discovery, String> {
+    library.discover()
+}
+#[tauri::command]
+fn load_game(library: tauri::State<'_, Library>, id: String) -> Result<Document, String> {
+    library.load(&id)
+}
+#[tauri::command]
+fn load_cover(library: tauri::State<'_, Library>, id: String) -> Result<Option<String>, String> {
+    library.cover(&id)
+}
+#[tauri::command]
+fn save_game(
+    library: tauri::State<'_, Library>,
+    id: String,
+    snapshot: String,
+    patch: serde_json::Value,
+) -> Result<Saved, String> {
+    library.save(&id, &snapshot, patch)
+}
+fn main() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _, _| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
+        .manage(Library::default())
+        .invoke_handler(tauri::generate_handler![
+            discover_games,
+            load_game,
+            load_cover,
+            save_game,
+            read_optiscaler,
+            save_optiscaler
+        ])
+        .run(tauri::generate_context!())
+        .expect("Could not start LaunchWeaver");
+}
+
+#[tauri::command]
+fn read_optiscaler(
+    library: tauri::State<'_, Library>,
+    id: String,
+) -> Result<launch_weaver_desktop::optiscaler::Document, String> {
+    library.read_optiscaler(&id)
+}
+
+#[tauri::command]
+async fn save_optiscaler(
+    app: tauri::AppHandle,
+    id: String,
+    snapshot: launch_weaver_desktop::optiscaler::Snapshot,
+    changes: serde_json::Value,
+    reset: bool,
+) -> Result<launch_weaver_desktop::optiscaler::Document, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Library>()
+            .save_optiscaler(&id, snapshot, changes, reset)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}

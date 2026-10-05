@@ -1,0 +1,11 @@
+{
+  "identifier": "main",
+  "description": "Local editor window; filesystem access is through validated application commands.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-destroy"
+  ]
+}

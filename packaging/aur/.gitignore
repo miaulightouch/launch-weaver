@@ -1,0 +1,5 @@
+/src/
+/pkg/
+/launch-weaver/
+/*.pkg.tar.*
+/*.log

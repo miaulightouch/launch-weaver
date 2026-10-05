@@ -9,16 +9,31 @@
     "build": "millennium-ttc --build prod",
     "typecheck": "tsc --noEmit",
     "test": "bun test && luajit backend/main.test.lua",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage",
+    "desktop:dev": "cd desktop && tauri dev",
+    "desktop:build": "cd desktop && tauri build",
+    "desktop:web": "vite --config desktop/vite.config.ts",
+    "desktop:web:build": "vite build --config desktop/vite.config.ts",
+    "desktop:typecheck": "tsc --noEmit -p desktop/tsconfig.json",
+    "desktop:test": "cargo test --manifest-path desktop/src-tauri/Cargo.toml --no-default-features"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
-    "@steambrew/client": "^5.8.5"
+    "@steambrew/client": "^5.8.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@tauri-apps/api": "^2.0.0"
   },
   "devDependencies": {
     "@steambrew/ttc": "3.3.7",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.2.3",
+    "typescript": "6.0.2",
+    "@tauri-apps/cli": "^2.0.0",
+    "vite": "^7.0.0",
+    "sass": "^1.89.0"
+  },
+  "overrides": {
     "typescript": "6.0.2"
   }
 }

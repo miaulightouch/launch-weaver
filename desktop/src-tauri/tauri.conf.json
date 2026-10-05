@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "LaunchWeaver",
+  "version": "0.1.0",
+  "identifier": "io.github.launchweaver.desktop",
+  "build": {
+    "beforeDevCommand": {
+      "script": "bun run desktop:web",
+      "cwd": ".."
+    },
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": {
+      "script": "bun run desktop:web:build",
+      "cwd": ".."
+    },
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "LaunchWeaver — standalone",
+        "width": 1100,
+        "height": 780,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "deb",
+      "rpm",
+      "appimage"
+    ],
+    "shortDescription": "Launch settings editor for Heroic and Faugus",
+    "category": "Utility",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png"
+    ],
+    "resources": [
+      "../src/assets/launchers/HEROIC-LICENSE",
+      "../src/assets/launchers/FAUGUS-LICENSE",
+      "../src/assets/launchers/NOTICE.md"
+    ]
+  }
+}

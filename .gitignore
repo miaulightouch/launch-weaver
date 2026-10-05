@@ -1,2 +1,5 @@
 node_modules/
 .millennium/
+desktop/dist/
+desktop/src-tauri/target/
+desktop/src-tauri/gen/

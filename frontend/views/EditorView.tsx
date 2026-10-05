@@ -31,15 +31,19 @@ export interface EditorViewProps {
   close(): void;
   environment: EnvironmentPageProps;
   notice: string | null;
-  noticeTone: "error" | "warning";
+  noticeTone: "error" | "warning" | "info";
   onApply(): void;
-  optiscaler: OptiscalerPageProps;
+  optiscaler?: OptiscalerPageProps;
+  context?: React.ReactNode;
+  closeLabel?: string;
   parameters: ParametersPageProps;
   update: AvailableUpdate | null;
   wrappers: WrappersPageProps;
 }
 
 export function EditorView({
+  context,
+  closeLabel = "Close",
   applying,
   canApply,
   close,
@@ -53,11 +57,11 @@ export function EditorView({
   wrappers,
 }: EditorViewProps) {
   const hiddenEnvironmentCount = environment.rows.filter(({ key }) =>
-    isHiddenEnvironmentKey(key),
+    !environment.includeHidden && isHiddenEnvironmentKey(key),
   ).length;
   const tabCounts = {
     environment: environment.rows.length - hiddenEnvironmentCount,
-    optiscaler: optiscaler.rows.length + hiddenEnvironmentCount,
+    optiscaler: (optiscaler?.rows.length ?? 0) + hiddenEnvironmentCount,
     parameters: parameters.rows.length,
     wrappers: wrappers.rows.length,
   };
@@ -89,8 +93,9 @@ export function EditorView({
     >
       <aside className="lw-sidebar">
         <div className="lw-brand">LaunchWeaver</div>
+        {context}
         <Tabs.List activateOnFocus aria-label="LaunchWeaver sections" className="lw-tabs">
-          {TABS.map(({ id, label }) => {
+          {TABS.filter(({ id }) => id !== "optiscaler" || optiscaler).map(({ id, label }) => {
             const count = tabCounts[id];
             return (
               <Tabs.Tab
@@ -119,14 +124,14 @@ export function EditorView({
         {page("environment", "Environment", <EnvironmentPage {...environment} />)}
         {page("wrappers", "Wrappers", <WrappersPage {...wrappers} />)}
         {page("parameters", "Parameters", <ParametersPage {...parameters} />)}
-        {page("optiscaler", "OptiScaler", <OptiscalerPage {...optiscaler} />)}
+        {optiscaler && page("optiscaler", "OptiScaler", <OptiscalerPage {...optiscaler} />)}
 
         <footer className="lw-footer">
           <Button disabled={!canApply} onClick={onApply} variant="primary">
             {applying ? "Applying…" : "Apply"}
           </Button>
           <Button disabled={applying} onClick={close}>
-            Close
+            {closeLabel}
           </Button>
         </footer>
       </main>

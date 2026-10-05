@@ -11,6 +11,10 @@
 > [!CAUTION]
 > **Vibe-coded toy project.** Experimental, unofficial, and unsupported. Use at your own risk.
 
+## Standalone desktop app
+
+A separate **Tauri app for Heroic and Faugus** lives in [`desktop/`](desktop/README.md). It shares the editor and design system with the Steam plugin, uses a purple theme, and does not depend on Steam or Millennium. Start it with `bun run desktop:dev`; see the desktop README for dependencies, supported settings, and current limits. The plugin instructions below still apply to Steam.
+
 ## What it does
 
 LaunchWeaver adds an **Edit in LaunchWeaver** button to a game's Steam Properties page. The editor separates a launch command into four focused pages:

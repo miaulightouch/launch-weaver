@@ -66,8 +66,9 @@ export function reorderVisibleEnvironmentRows(
   sourceId: string,
   targetId: string,
   position: DropPosition,
+  includeHidden = false,
 ) {
-  const visible = rows.filter(({ key }) => !isHiddenEnvironmentKey(key));
+  const visible = rows.filter(({ key }) => includeHidden || !isHiddenEnvironmentKey(key));
   const original = [...visible];
   const from = visible.findIndex(({ id }) => id === sourceId);
   const target = visible.findIndex(({ id }) => id === targetId);
@@ -81,6 +82,6 @@ export function reorderVisibleEnvironmentRows(
 
   let nextVisible = 0;
   return rows.map((row) =>
-    isHiddenEnvironmentKey(row.key) ? row : visible[nextVisible++]!,
+    !includeHidden && isHiddenEnvironmentKey(row.key) ? row : visible[nextVisible++]!,
   );
 }

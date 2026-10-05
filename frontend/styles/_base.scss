@@ -1,17 +1,5 @@
-html,
-body,
-#launchweaver-root {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  width: 100%;
-}
-
-body {
-  background: #171d25;
-}
-
-.lw-root {
+// Default palette also applies to popup portals mounted under body.
+:root, .lw-root {
   --lw-bg: #171d25;
   --lw-sidebar: #272d36;
   --lw-card: #242a33;
@@ -22,6 +10,63 @@ body {
   --lw-accent: #1a9fff;
   --lw-accent-hover: #45b8ff;
   --lw-focus: #67c1f5;
+  --lw-hover: #313946;
+  --lw-selected: #414b5a;
+  --lw-scrollbar: #4a5565;
+  --lw-divider: #242c36;
+  --lw-button: #3b4552;
+  --lw-button-hover: #4a5665;
+  --lw-on-accent: #07121a;
+  --lw-placeholder: #7f8997;
+  --lw-switch: #596473;
+  --lw-popup-border: #536173;
+  --lw-highlight: #3d5268;
+  --lw-heading: #66c0f4;
+  --lw-white: #ffffff;
+  --lw-badge: rgb(102 192 244 / 15%);
+  --lw-warning: #ffd479;
+  --lw-error: #ff8a8a;
+  --lw-info: #9ed8f5;
+}
+:root[data-lw-theme="desktop"], [data-lw-theme="desktop"] .lw-root {
+  --lw-bg: #1b1824;
+  --lw-sidebar: #282333;
+  --lw-card: #2b2637;
+  --lw-input: #14111d;
+  --lw-border: #4e435f;
+  --lw-text: #f3eff8;
+  --lw-muted: #bdb2cb;
+  --lw-accent: #b69aff;
+  --lw-accent-hover: #cbb7ff;
+  --lw-focus: #d0bfff;
+  --lw-hover: #352d43;
+  --lw-selected: #493c5f;
+  --lw-scrollbar: #5e506f;
+  --lw-divider: #342c40;
+  --lw-button: #42364f;
+  --lw-button-hover: #534264;
+  --lw-on-accent: #1b102f;
+  --lw-placeholder: #978aa5;
+  --lw-switch: #6a5b7c;
+  --lw-popup-border: #69557f;
+  --lw-highlight: #4e3d69;
+  --lw-heading: #c7b0ff;
+  --lw-badge: rgb(182 154 255 / 15%);
+}
+html,
+body,
+#launchweaver-root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+body {
+  background: var(--lw-bg);
+}
+
+.lw-root {
   background: var(--lw-bg);
   color: var(--lw-text);
   color-scheme: dark;
